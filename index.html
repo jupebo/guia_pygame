@@ -1,0 +1,2191 @@
+<!doctype html>
+<html lang="es" class="h-full">
+ <head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Tutorial Interactivo de Pygame</title>
+  <script src="/_sdk/element_sdk.js"></script>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+        body {
+            box-sizing: border-box;
+        }
+        
+        .code-block {
+            background: #1e1e1e;
+            color: #d4d4d4;
+            border-radius: 8px;
+            padding: 20px;
+            overflow-x: auto;
+            font-family: 'Courier New', 'Consolas', 'Monaco', monospace;
+            font-size: 14px;
+            line-height: 1.6;
+            margin: 1rem 0;
+        }
+        
+        .code-block code {
+            display: block;
+            white-space: pre;
+        }
+        
+        .comment {
+            color: #6a9955;
+        }
+        
+        .keyword {
+            color: #569cd6;
+        }
+        
+        .string {
+            color: #ce9178;
+        }
+        
+        .function {
+            color: #dcdcaa;
+        }
+        
+        .number {
+            color: #b5cea8;
+        }
+        
+        .exercise-box {
+            border-left: 4px solid #10b981;
+            background: #f0fdf4;
+            padding: 1.5rem;
+            margin: 1.5rem 0;
+            border-radius: 0 8px 8px 0;
+        }
+        
+        .tip-box {
+            border-left: 4px solid #3b82f6;
+            background: #eff6ff;
+            padding: 1rem;
+            margin: 1rem 0;
+            border-radius: 0 8px 8px 0;
+        }
+        
+        .warning-box {
+            border-left: 4px solid #f59e0b;
+            background: #fffbeb;
+            padding: 1rem;
+            margin: 1rem 0;
+            border-radius: 0 8px 8px 0;
+        }
+        
+        .important-box {
+            border-left: 4px solid #8b5cf6;
+            background: #faf5ff;
+            padding: 1rem;
+            margin: 1rem 0;
+            border-radius: 0 8px 8px 0;
+        }
+        
+        .nav-section {
+            transition: all 0.3s ease;
+        }
+        
+        .nav-section:hover {
+            background: #f3f4f6;
+        }
+        
+        .nav-section.active {
+            background: #dbeafe;
+            border-left: 4px solid #3b82f6;
+        }
+        
+        .content-section {
+            display: none;
+        }
+        
+        .content-section.active {
+            display: block;
+            animation: fadeIn 0.3s ease-in;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        .param-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 1rem 0;
+        }
+        
+        .param-table th,
+        .param-table td {
+            border: 1px solid #e5e7eb;
+            padding: 0.75rem;
+            text-align: left;
+        }
+        
+        .param-table th {
+            background: #f9fafb;
+            font-weight: 600;
+        }
+        
+        .progress-bar {
+            height: 8px;
+            background: #e5e7eb;
+            border-radius: 4px;
+            overflow: hidden;
+            margin: 1rem 0;
+        }
+        
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #3b82f6, #10b981);
+            transition: width 0.3s ease;
+        }
+    </style>
+  <script>
+        // Configuración por defecto
+        const defaultConfig = {
+            main_title: "🎮 Tutorial Interactivo de Pygame",
+            subtitle: "Aprende a crear juegos con Python"
+        };
+
+        // Variables para seguir progreso
+        let sectionsCompleted = new Set();
+        const totalSections = 11;
+
+        // Función para mostrar sección
+        function showSection(sectionId) {
+            // Ocultar todas las secciones
+            document.querySelectorAll('.content-section').forEach(section => {
+                section.classList.remove('active');
+            });
+            
+            // Remover active de navegación
+            document.querySelectorAll('.nav-section').forEach(nav => {
+                nav.classList.remove('active');
+            });
+            
+            // Mostrar sección seleccionada
+            const selectedSection = document.getElementById(sectionId);
+            if (selectedSection) {
+                selectedSection.classList.add('active');
+                sectionsCompleted.add(sectionId);
+                updateProgress();
+            }
+            
+            // Activar navegación
+            const navItems = document.querySelectorAll('.nav-section');
+            navItems.forEach(item => {
+                if (item.getAttribute('onclick').includes(sectionId)) {
+                    item.classList.add('active');
+                }
+            });
+		// Hacer scroll al inicio del área de contenido
+            const mainContent = document.querySelector('main');
+            if (mainContent) {
+                mainContent.scrollTop = 0;
+            }
+
+        }
+
+        // Actualizar barra de progreso
+        function updateProgress() {
+            const progress = (sectionsCompleted.size / totalSections) * 100;
+            const progressFill = document.getElementById('progress-fill');
+            const progressText = document.getElementById('progress-text');
+            
+            if (progressFill) {
+                progressFill.style.width = progress + '%';
+            }
+            if (progressText) {
+                progressText.textContent = `Progreso: ${Math.round(progress)}% completado`;
+            }
+        }
+
+        // Función onConfigChange
+        async function onConfigChange(config) {
+            const titleElement = document.getElementById('main-title');
+            const subtitleElement = document.getElementById('subtitle');
+            
+            if (titleElement) {
+                titleElement.textContent = config.main_title || defaultConfig.main_title;
+            }
+            if (subtitleElement) {
+                subtitleElement.textContent = config.subtitle || defaultConfig.subtitle;
+            }
+        }
+
+        // Inicializar SDK si está disponible
+        document.addEventListener('DOMContentLoaded', function() {
+            if (window.elementSdk) {
+                window.elementSdk.init({
+                    defaultConfig: defaultConfig,
+                    onConfigChange: onConfigChange,
+                    mapToCapabilities: (config) => ({
+                        recolorables: [],
+                        borderables: [],
+                        fontEditable: undefined,
+                        fontSizeable: undefined
+                    }),
+                    mapToEditPanelValues: (config) => new Map([
+                        ["main_title", config.main_title || defaultConfig.main_title],
+                        ["subtitle", config.subtitle || defaultConfig.subtitle]
+                    ])
+                });
+            }
+            
+            // Inicializar progreso
+            sectionsCompleted.add('intro');
+            updateProgress();
+        });
+    </script>
+  <style>@view-transition { navigation: auto; }</style>
+  <script src="/_sdk/data_sdk.js" type="text/javascript"></script>
+ </head>
+ <body class="h-full">
+  <div class="h-full w-full flex flex-col" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);"><!-- Header -->
+   <header class="text-white py-8 px-6 shadow-lg">
+    <div class="max-w-7xl mx-auto">
+     <h1 id="main-title" class="text-4xl font-bold mb-2">🎮 Tutorial Interactivo de Pygame</h1>
+     <p id="subtitle" class="text-xl opacity-90">Aprende a crear juegos con Python</p>
+     <div class="progress-bar mt-4">
+      <div id="progress-fill" class="progress-fill" style="width: 9%"></div>
+     </div>
+     <p id="progress-text" class="text-sm mt-2 opacity-75">Progreso: 9% completado</p>
+    </div>
+   </header><!-- Main Content -->
+   <div class="flex-1 flex overflow-hidden"><!-- Sidebar Navigation -->
+    <aside class="w-80 bg-white shadow-lg overflow-y-auto">
+     <nav class="p-4">
+      <h2 class="text-lg font-bold text-gray-800 mb-4 px-3">📚 Contenido del Curso</h2>
+      <div class="nav-section active px-3 py-3 rounded-lg cursor-pointer mb-2" onclick="showSection('intro')">
+       <div class="font-semibold text-gray-800">
+        1. Introducción a Pygame
+       </div>
+       <div class="text-sm text-gray-600">
+        ¿Qué es Pygame?
+       </div>
+      </div>
+      <div class="nav-section px-3 py-3 rounded-lg cursor-pointer mb-2" onclick="showSection('instalacion')">
+       <div class="font-semibold text-gray-800">
+        2. Instalación y Primera Ventana
+       </div>
+       <div class="text-sm text-gray-600">
+        Setup y ventana básica
+       </div>
+      </div>
+      <div class="nav-section px-3 py-3 rounded-lg cursor-pointer mb-2" onclick="showSection('game-loop')">
+       <div class="font-semibold text-gray-800">
+        3. El Game Loop
+       </div>
+       <div class="text-sm text-gray-600">
+        Bucle principal del juego
+       </div>
+      </div>
+      <div class="nav-section px-3 py-3 rounded-lg cursor-pointer mb-2" onclick="showSection('dibujo')">
+       <div class="font-semibold text-gray-800">
+        4. Dibujar Formas
+       </div>
+       <div class="text-sm text-gray-600">
+        Rectángulos, círculos, líneas
+       </div>
+      </div>
+      <div class="nav-section px-3 py-3 rounded-lg cursor-pointer mb-2" onclick="showSection('colores')">
+       <div class="font-semibold text-gray-800">
+        5. Colores y Superficies
+       </div>
+       <div class="text-sm text-gray-600">
+        RGB y Surface
+       </div>
+      </div>
+      <div class="nav-section px-3 py-3 rounded-lg cursor-pointer mb-2" onclick="showSection('eventos')">
+       <div class="font-semibold text-gray-800">
+        6. Manejo de Eventos
+       </div>
+       <div class="text-sm text-gray-600">
+        Teclado y mouse
+       </div>
+      </div>
+      <div class="nav-section px-3 py-3 rounded-lg cursor-pointer mb-2" onclick="showSection('movimiento')">
+       <div class="font-semibold text-gray-800">
+        7. Movimiento y Física
+       </div>
+       <div class="text-sm text-gray-600">
+        Mover objetos en pantalla
+       </div>
+      </div>
+      <div class="nav-section px-3 py-3 rounded-lg cursor-pointer mb-2" onclick="showSection('colisiones')">
+       <div class="font-semibold text-gray-800">
+        8. Detección de Colisiones
+       </div>
+       <div class="text-sm text-gray-600">
+        Rect y collide
+       </div>
+      </div>
+      <div class="nav-section px-3 py-3 rounded-lg cursor-pointer mb-2" onclick="showSection('sprites')">
+       <div class="font-semibold text-gray-800">
+        9. Sprites e Imágenes
+       </div>
+       <div class="text-sm text-gray-600">
+        Cargar y usar sprites
+       </div>
+      </div>
+      <div class="nav-section px-3 py-3 rounded-lg cursor-pointer mb-2" onclick="showSection('texto-sonido')">
+       <div class="font-semibold text-gray-800">
+        10. Texto y Sonido
+       </div>
+       <div class="text-sm text-gray-600">
+        Fuentes y música
+       </div>
+      </div>
+      <div class="nav-section px-3 py-3 rounded-lg cursor-pointer mb-2" onclick="showSection('proyecto')">
+       <div class="font-semibold text-gray-800">
+        11. Proyecto Final
+       </div>
+       <div class="text-sm text-gray-600">
+        ¡Crea tu primer juego!
+       </div>
+      </div>
+     </nav>
+    </aside><!-- Content Area -->
+    <main class="flex-1 bg-gray-50 overflow-y-auto p-8">
+     <div class="max-w-4xl mx-auto"><!-- Section 1: Introducción -->
+      <section id="intro" class="content-section active bg-white rounded-lg shadow-lg p-8">
+       <h2 class="text-3xl font-bold text-gray-800 mb-4">1. Introducción a Pygame</h2>
+       <h3 class="text-2xl font-semibold text-gray-700 mt-6 mb-3">¿Qué es Pygame?</h3>
+       <p class="text-gray-700 mb-4 leading-relaxed">Pygame es una biblioteca de Python diseñada para crear videojuegos 2D. Está construida sobre SDL (Simple DirectMedia Layer) y proporciona funcionalidades para:</p>
+       <ul class="list-disc ml-6 text-gray-700 space-y-2 mb-6">
+        <li>Crear ventanas y dibujar gráficos</li>
+        <li>Manejar eventos del teclado y mouse</li>
+        <li>Cargar y reproducir sonidos y música</li>
+        <li>Detectar colisiones entre objetos</li>
+        <li>Trabajar con sprites e imágenes</li>
+       </ul>
+       <div class="tip-box"><strong>💡 ¿Por qué aprender Pygame?</strong>
+        <ul class="list-disc ml-6 mt-2">
+         <li>Es perfecto para principiantes en desarrollo de juegos</li>
+         <li>Te enseña conceptos fundamentales de programación de videojuegos</li>
+         <li>Tiene una comunidad activa y muchos tutoriales</li>
+         <li>Es completamente gratuito y de código abierto</li>
+        </ul>
+       </div>
+       <h3 class="text-2xl font-semibold text-gray-700 mt-6 mb-3">Conceptos Básicos</h3>
+       <div class="important-box"><strong>🎯 Conceptos Clave que Aprenderás:</strong>
+        <ul class="list-disc ml-6 mt-2">
+         <li><strong>Game Loop:</strong> El bucle infinito que mantiene el juego corriendo</li>
+         <li><strong>FPS (Frames Per Second):</strong> Cuántas veces se actualiza la pantalla por segundo</li>
+         <li><strong>Surface:</strong> Superficies donde se dibujan gráficos</li>
+         <li><strong>Rect:</strong> Rectángulos para posicionar objetos y detectar colisiones</li>
+         <li><strong>Sprite:</strong> Objetos del juego (personajes, enemigos, etc.)</li>
+         <li><strong>Event:</strong> Acciones del usuario (teclas, clics)</li>
+        </ul>
+       </div>
+       <h3 class="text-2xl font-semibold text-gray-700 mt-6 mb-3">Estructura Típica de un Juego</h3>
+       <pre class="code-block"><code><span class="comment"># 1. IMPORTAR PYGAME</span>
+<span class="keyword">import</span> pygame
+
+<span class="comment"># 2. INICIALIZAR PYGAME</span>
+pygame.<span class="function">init</span>()
+
+<span class="comment"># 3. CONFIGURACIÓN INICIAL</span>
+<span class="comment"># - Crear ventana</span>
+<span class="comment"># - Definir colores</span>
+<span class="comment"># - Crear objetos del juego</span>
+
+<span class="comment"># 4. GAME LOOP (bucle principal)</span>
+corriendo = <span class="keyword">True</span>
+<span class="keyword">while</span> corriendo:
+    <span class="comment"># A. Manejar eventos (teclado, mouse)</span>
+    
+    <span class="comment"># B. Actualizar lógica del juego</span>
+    
+    <span class="comment"># C. Dibujar todo en pantalla</span>
+    
+    <span class="comment"># D. Controlar FPS</span>
+
+<span class="comment"># 5. CERRAR PYGAME</span>
+pygame.<span class="function">quit</span>()
+</code></pre>
+       <div class="exercise-box">
+        <h4 class="text-xl font-bold text-gray-800 mb-3">🎯 Reflexión</h4>
+        <p class="text-gray-700">Antes de continuar, piensa en un juego simple que te gustaría crear (ejemplo: Pong, Snake, Flappy Bird). A medida que avances en el tutorial, podrás ir construyéndolo paso a paso.</p>
+       </div>
+       <div class="warning-box"><strong>⚠️ Nota Importante:</strong> Los ejemplos de código en este tutorial están diseñados para ejecutarse en tu computadora con Python instalado. No se pueden ejecutar directamente en el navegador.
+       </div>
+      </section><!-- Section 2: Instalación -->
+      <section id="instalacion" class="content-section bg-white rounded-lg shadow-lg p-8">
+       <h2 class="text-3xl font-bold text-gray-800 mb-4">2. Instalación y Primera Ventana</h2>
+       <h3 class="text-2xl font-semibold text-gray-700 mt-6 mb-3">Instalación de Pygame</h3>
+       <p class="text-gray-700 mb-4">Para instalar Pygame, abre tu terminal o línea de comandos y ejecuta:</p>
+       <pre class="code-block"><code><span class="comment"># Para Python 3</span>
+pip install pygame
+
+<span class="comment"># Si tienes múltiples versiones de Python</span>
+pip3 install pygame
+
+<span class="comment"># Para verificar que se instaló correctamente</span>
+python -m pygame.examples.aliens
+</code></pre>
+       <div class="tip-box"><strong>💡 Verificar la instalación:</strong>
+        <p class="mt-2">Si el comando de verificación funciona y ves un juego de ejemplo, ¡Pygame está correctamente instalado!</p>
+       </div>
+       <h3 class="text-2xl font-semibold text-gray-700 mt-8 mb-3">Tu Primera Ventana</h3>
+       <p class="text-gray-700 mb-4">Vamos a crear una ventana simple que permanezca abierta:</p>
+       <pre class="code-block"><code><span class="keyword">import</span> pygame
+<span class="keyword">import</span> sys
+
+<span class="comment"># Inicializar Pygame</span>
+pygame.<span class="function">init</span>()
+
+<span class="comment"># Crear ventana de 800x600 píxeles</span>
+<span class="comment"># El parámetro es una tupla (ancho, alto)</span>
+pantalla = pygame.display.<span class="function">set_mode</span>((<span class="number">800</span>, <span class="number">600</span>))
+
+<span class="comment"># Establecer el título de la ventana</span>
+pygame.display.<span class="function">set_caption</span>(<span class="string">"Mi Primera Ventana Pygame"</span>)
+
+<span class="comment"># Bucle principal del juego</span>
+corriendo = <span class="keyword">True</span>
+<span class="keyword">while</span> corriendo:
+    <span class="comment"># Revisar todos los eventos</span>
+    <span class="keyword">for</span> evento <span class="keyword">in</span> pygame.event.<span class="function">get</span>():
+        <span class="comment"># Si el usuario cierra la ventana</span>
+        <span class="keyword">if</span> evento.type == pygame.QUIT:
+            corriendo = <span class="keyword">False</span>
+    
+    <span class="comment"># Actualizar la pantalla</span>
+    pygame.display.<span class="function">flip</span>()
+
+<span class="comment"># Cerrar Pygame correctamente</span>
+pygame.<span class="function">quit</span>()
+sys.<span class="function">exit</span>()
+</code></pre>
+       <h4 class="text-xl font-semibold text-gray-700 mt-6 mb-3">Explicación línea por línea:</h4>
+       <table class="param-table">
+        <thead>
+         <tr>
+          <th>Código</th>
+          <th>Explicación</th>
+         </tr>
+        </thead>
+        <tbody>
+         <tr>
+          <td><code>pygame.init()</code></td>
+          <td>Inicializa todos los módulos de Pygame. ¡Siempre debe ser lo primero!</td>
+         </tr>
+         <tr>
+          <td><code>set_mode((800, 600))</code></td>
+          <td>Crea una ventana de 800 píxeles de ancho x 600 de alto</td>
+         </tr>
+         <tr>
+          <td><code>set_caption()</code></td>
+          <td>Define el texto que aparece en la barra de título</td>
+         </tr>
+         <tr>
+          <td><code>pygame.event.get()</code></td>
+          <td>Obtiene la lista de eventos (clics, teclas, cerrar ventana)</td>
+         </tr>
+         <tr>
+          <td><code>pygame.QUIT</code></td>
+          <td>Evento que ocurre cuando el usuario cierra la ventana</td>
+         </tr>
+         <tr>
+          <td><code>display.flip()</code></td>
+          <td>Actualiza toda la pantalla con los cambios realizados</td>
+         </tr>
+         <tr>
+          <td><code>pygame.quit()</code></td>
+          <td>Cierra Pygame y libera recursos</td>
+         </tr>
+        </tbody>
+       </table>
+       <div class="important-box mt-6"><strong>🔍 ¿Por qué necesitamos el bucle while?</strong>
+        <p class="mt-2">Sin el bucle <code>while corriendo</code>, el programa terminaría inmediatamente y la ventana se cerraría al instante. El bucle mantiene el programa ejecutándose constantemente, revisando eventos y actualizando la pantalla.</p>
+       </div>
+       <h3 class="text-2xl font-semibold text-gray-700 mt-8 mb-3">Agregar Color de Fondo</h3>
+       <pre class="code-block"><code><span class="keyword">import</span> pygame
+<span class="keyword">import</span> sys
+
+pygame.<span class="function">init</span>()
+pantalla = pygame.display.<span class="function">set_mode</span>((<span class="number">800</span>, <span class="number">600</span>))
+pygame.display.<span class="function">set_caption</span>(<span class="string">"Ventana con Color"</span>)
+
+<span class="comment"># Definir color RGB (Red, Green, Blue)</span>
+<span class="comment"># Cada valor va de 0 a 255</span>
+AZUL_CIELO = (<span class="number">135</span>, <span class="number">206</span>, <span class="number">235</span>)
+
+corriendo = <span class="keyword">True</span>
+<span class="keyword">while</span> corriendo:
+    <span class="keyword">for</span> evento <span class="keyword">in</span> pygame.event.<span class="function">get</span>():
+        <span class="keyword">if</span> evento.type == pygame.QUIT:
+            corriendo = <span class="keyword">False</span>
+    
+    <span class="comment"># Llenar la pantalla con un color</span>
+    pantalla.<span class="function">fill</span>(AZUL_CIELO)
+    
+    pygame.display.<span class="function">flip</span>()
+
+pygame.<span class="function">quit</span>()
+sys.<span class="function">exit</span>()
+</code></pre>
+       <div class="exercise-box">
+        <h4 class="text-xl font-bold text-gray-800 mb-3">🎯 Ejercicio 1</h4>
+        <p class="text-gray-700 mb-2">Modifica el código para:</p>
+        <ul class="list-disc ml-6 text-gray-700">
+         <li>Cambiar el tamaño de la ventana a 1024x768</li>
+         <li>Cambiar el título a "Mi Primer Juego"</li>
+         <li>Usar un color de fondo verde oscuro (RGB: 34, 139, 34)</li>
+        </ul>
+       </div>
+      </section><!-- Section 3: Game Loop -->
+      <section id="game-loop" class="content-section bg-white rounded-lg shadow-lg p-8">
+       <h2 class="text-3xl font-bold text-gray-800 mb-4">3. El Game Loop (Bucle del Juego)</h2>
+       <h3 class="text-2xl font-semibold text-gray-700 mt-6 mb-3">¿Qué es el Game Loop?</h3>
+       <p class="text-gray-700 mb-4 leading-relaxed">El Game Loop es el corazón de cualquier videojuego. Es un bucle que se ejecuta constantemente (idealmente 60 veces por segundo) y realiza tres tareas principales:</p>
+       <div class="important-box"><strong>🔄 Las 3 Fases del Game Loop:</strong>
+        <ol class="list-decimal ml-6 mt-2 space-y-2">
+         <li><strong>Input (Entrada):</strong> Capturar eventos del usuario (teclado, mouse)</li>
+         <li><strong>Update (Actualizar):</strong> Actualizar la lógica del juego (mover objetos, calcular colisiones)</li>
+         <li><strong>Render (Dibujar):</strong> Dibujar todo en la pantalla</li>
+        </ol>
+       </div>
+       <h3 class="text-2xl font-semibold text-gray-700 mt-8 mb-3">Estructura del Game Loop</h3>
+       <pre class="code-block"><code><span class="keyword">import</span> pygame
+<span class="keyword">import</span> sys
+
+pygame.<span class="function">init</span>()
+pantalla = pygame.display.<span class="function">set_mode</span>((<span class="number">800</span>, <span class="number">600</span>))
+pygame.display.<span class="function">set_caption</span>(<span class="string">"Game Loop Básico"</span>)
+
+<span class="comment"># Clock para controlar FPS</span>
+reloj = pygame.time.<span class="function">Clock</span>()
+FPS = <span class="number">60</span>  <span class="comment"># Frames por segundo</span>
+
+<span class="comment"># Colores</span>
+NEGRO = (<span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>)
+BLANCO = (<span class="number">255</span>, <span class="number">255</span>, <span class="number">255</span>)
+
+corriendo = <span class="keyword">True</span>
+<span class="keyword">while</span> corriendo:
+    <span class="comment"># ===== FASE 1: INPUT (Eventos) =====</span>
+    <span class="keyword">for</span> evento <span class="keyword">in</span> pygame.event.<span class="function">get</span>():
+        <span class="keyword">if</span> evento.type == pygame.QUIT:
+            corriendo = <span class="keyword">False</span>
+        <span class="keyword">if</span> evento.type == pygame.KEYDOWN:
+            <span class="keyword">if</span> evento.key == pygame.K_ESCAPE:
+                corriendo = <span class="keyword">False</span>
+    
+    <span class="comment"># ===== FASE 2: UPDATE (Lógica del juego) =====</span>
+    <span class="comment"># Aquí actualizamos posiciones, calculamos colisiones, etc.</span>
+    
+    <span class="comment"># ===== FASE 3: RENDER (Dibujar) =====</span>
+    pantalla.<span class="function">fill</span>(NEGRO)  <span class="comment"># Limpiar pantalla</span>
+    
+    <span class="comment"># Aquí dibujamos todo</span>
+    
+    pygame.display.<span class="function">flip</span>()  <span class="comment"># Actualizar pantalla</span>
+    
+    <span class="comment"># ===== CONTROLAR FPS =====</span>
+    reloj.<span class="function">tick</span>(FPS)  <span class="comment"># Esperar para mantener 60 FPS</span>
+
+pygame.<span class="function">quit</span>()
+sys.<span class="function">exit</span>()
+</code></pre>
+       <h3 class="text-2xl font-semibold text-gray-700 mt-8 mb-3">¿Qué es FPS?</h3>
+       <p class="text-gray-700 mb-4">FPS (Frames Per Second) indica cuántas veces por segundo se actualiza la pantalla. 60 FPS significa que el game loop se ejecuta 60 veces por segundo.</p>
+       <table class="param-table">
+        <thead>
+         <tr>
+          <th>FPS</th>
+          <th>Descripción</th>
+          <th>Uso</th>
+         </tr>
+        </thead>
+        <tbody>
+         <tr>
+          <td>30 FPS</td>
+          <td>Fluido para juegos casuales</td>
+          <td>Juegos de estrategia, puzzles</td>
+         </tr>
+         <tr>
+          <td>60 FPS</td>
+          <td>Estándar para juegos modernos</td>
+          <td>La mayoría de juegos 2D</td>
+         </tr>
+         <tr>
+          <td>120+ FPS</td>
+          <td>Ultra fluido</td>
+          <td>Juegos competitivos</td>
+         </tr>
+        </tbody>
+       </table>
+       <div class="tip-box"><strong>💡 El método tick():</strong>
+        <p class="mt-2"><code>reloj.tick(60)</code> hace que el programa espere el tiempo necesario para mantener 60 FPS. Si el código se ejecuta muy rápido, añade una pausa. Si es demasiado lento, permite que el juego continúe.</p>
+       </div>
+       <h3 class="text-2xl font-semibold text-gray-700 mt-8 mb-3">Mostrar FPS en Pantalla</h3>
+       <pre class="code-block"><code><span class="keyword">import</span> pygame
+<span class="keyword">import</span> sys
+
+pygame.<span class="function">init</span>()
+pantalla = pygame.display.<span class="function">set_mode</span>((<span class="number">800</span>, <span class="number">600</span>))
+pygame.display.<span class="function">set_caption</span>(<span class="string">"Contador de FPS"</span>)
+
+reloj = pygame.time.<span class="function">Clock</span>()
+fuente = pygame.font.<span class="function">Font</span>(<span class="keyword">None</span>, <span class="number">36</span>)  <span class="comment"># Fuente para texto</span>
+
+NEGRO = (<span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>)
+VERDE = (<span class="number">0</span>, <span class="number">255</span>, <span class="number">0</span>)
+
+corriendo = <span class="keyword">True</span>
+<span class="keyword">while</span> corriendo:
+    <span class="keyword">for</span> evento <span class="keyword">in</span> pygame.event.<span class="function">get</span>():
+        <span class="keyword">if</span> evento.type == pygame.QUIT:
+            corriendo = <span class="keyword">False</span>
+    
+    <span class="comment"># Obtener FPS actual</span>
+    fps = reloj.<span class="function">get_fps</span>()
+    
+    pantalla.<span class="function">fill</span>(NEGRO)
+    
+    <span class="comment"># Renderizar texto con FPS</span>
+    texto_fps = fuente.<span class="function">render</span>(<span class="string">f"FPS: {fps:.0f}"</span>, <span class="keyword">True</span>, VERDE)
+    pantalla.<span class="function">blit</span>(texto_fps, (<span class="number">10</span>, <span class="number">10</span>))
+    
+    pygame.display.<span class="function">flip</span>()
+    reloj.<span class="function">tick</span>(<span class="number">60</span>)
+
+pygame.<span class="function">quit</span>()
+sys.<span class="function">exit</span>()
+</code></pre>
+       <div class="exercise-box">
+        <h4 class="text-xl font-bold text-gray-800 mb-3">🎯 Ejercicio 2</h4>
+        <p class="text-gray-700 mb-2">Modifica el código para:</p>
+        <ul class="list-disc ml-6 text-gray-700">
+         <li>Limitar el juego a 30 FPS en lugar de 60</li>
+         <li>Mostrar el FPS en la esquina superior derecha</li>
+         <li>Cambiar el color del texto FPS a amarillo</li>
+         <li>Agregar un contador que muestre cuántos segundos lleva el juego corriendo</li>
+        </ul>
+       </div>
+       <div class="warning-box"><strong>⚠️ Importante:</strong> Siempre debes llamar a <code>reloj.tick(FPS)</code> al final del game loop. Sin esto, el juego correrá tan rápido como pueda tu computadora, lo que puede causar problemas.
+       </div>
+      </section><!-- Section 4: Dibujo -->
+      <section id="dibujo" class="content-section bg-white rounded-lg shadow-lg p-8">
+       <h2 class="text-3xl font-bold text-gray-800 mb-4">4. Dibujar Formas</h2>
+       <p class="text-gray-700 mb-4 leading-relaxed">Pygame incluye el módulo <code>pygame.draw</code> que permite dibujar formas geométricas básicas. Son perfectos para prototipar juegos antes de usar sprites reales.</p>
+       <h3 class="text-2xl font-semibold text-gray-700 mt-6 mb-3">Dibujar Rectángulos</h3>
+       <pre class="code-block"><code><span class="keyword">import</span> pygame
+<span class="keyword">import</span> sys
+
+pygame.<span class="function">init</span>()
+pantalla = pygame.display.<span class="function">set_mode</span>((<span class="number">800</span>, <span class="number">600</span>))
+pygame.display.<span class="function">set_caption</span>(<span class="string">"Dibujando Rectángulos"</span>)
+
+NEGRO = (<span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>)
+ROJO = (<span class="number">255</span>, <span class="number">0</span>, <span class="number">0</span>)
+VERDE = (<span class="number">0</span>, <span class="number">255</span>, <span class="number">0</span>)
+AZUL = (<span class="number">0</span>, <span class="number">0</span>, <span class="number">255</span>)
+
+reloj = pygame.time.<span class="function">Clock</span>()
+
+corriendo = <span class="keyword">True</span>
+<span class="keyword">while</span> corriendo:
+    <span class="keyword">for</span> evento <span class="keyword">in</span> pygame.event.<span class="function">get</span>():
+        <span class="keyword">if</span> evento.type == pygame.QUIT:
+            corriendo = <span class="keyword">False</span>
+    
+    pantalla.<span class="function">fill</span>(NEGRO)
+    
+    <span class="comment"># pygame.draw.rect(superficie, color, (x, y, ancho, alto))</span>
+    <span class="comment"># Rectángulo rojo en (100, 100) de 200x100 píxeles</span>
+    pygame.draw.<span class="function">rect</span>(pantalla, ROJO, (<span class="number">100</span>, <span class="number">100</span>, <span class="number">200</span>, <span class="number">100</span>))
+    
+    <span class="comment"># Rectángulo verde con borde (último parámetro = grosor del borde)</span>
+    pygame.draw.<span class="function">rect</span>(pantalla, VERDE, (<span class="number">400</span>, <span class="number">100</span>, <span class="number">200</span>, <span class="number">100</span>), <span class="number">5</span>)
+    
+    <span class="comment"># También se puede usar un objeto Rect</span>
+    rectangulo = pygame.<span class="function">Rect</span>(<span class="number">250</span>, <span class="number">300</span>, <span class="number">150</span>, <span class="number">80</span>)
+    pygame.draw.<span class="function">rect</span>(pantalla, AZUL, rectangulo)
+    
+    pygame.display.<span class="function">flip</span>()
+    reloj.<span class="function">tick</span>(<span class="number">60</span>)
+
+pygame.<span class="function">quit</span>()
+sys.<span class="function">exit</span>()
+</code></pre>
+       <h3 class="text-2xl font-semibold text-gray-700 mt-8 mb-3">Dibujar Círculos</h3>
+       <pre class="code-block"><code><span class="comment"># pygame.draw.circle(superficie, color, (centro_x, centro_y), radio)</span>
+
+<span class="comment"># Círculo amarillo en el centro de la pantalla</span>
+AMARILLO = (<span class="number">255</span>, <span class="number">255</span>, <span class="number">0</span>)
+pygame.draw.<span class="function">circle</span>(pantalla, AMARILLO, (<span class="number">400</span>, <span class="number">300</span>), <span class="number">50</span>)
+
+<span class="comment"># Círculo con borde (último parámetro = grosor)</span>
+pygame.draw.<span class="function">circle</span>(pantalla, ROJO, (<span class="number">200</span>, <span class="number">200</span>), <span class="number">75</span>, <span class="number">3</span>)
+</code></pre>
+       <h3 class="text-2xl font-semibold text-gray-700 mt-8 mb-3">Dibujar Líneas</h3>
+       <pre class="code-block"><code><span class="comment"># pygame.draw.line(superficie, color, punto_inicio, punto_fin, grosor)</span>
+
+<span class="comment"># Línea blanca de (0, 0) a (800, 600)</span>
+BLANCO = (<span class="number">255</span>, <span class="number">255</span>, <span class="number">255</span>)
+pygame.draw.<span class="function">line</span>(pantalla, BLANCO, (<span class="number">0</span>, <span class="number">0</span>), (<span class="number">800</span>, <span class="number">600</span>), <span class="number">2</span>)
+
+<span class="comment"># Múltiples líneas conectadas</span>
+puntos = [(<span class="number">100</span>, <span class="number">400</span>), (<span class="number">200</span>, <span class="number">350</span>), (<span class="number">300</span>, <span class="number">450</span>), (<span class="number">400</span>, <span class="number">380</span>)]
+pygame.draw.<span class="function">lines</span>(pantalla, VERDE, <span class="keyword">False</span>, puntos, <span class="number">4</span>)
+<span class="comment"># False = líneas abiertas, True = cerrar la forma</span>
+</code></pre>
+       <h3 class="text-2xl font-semibold text-gray-700 mt-8 mb-3">Dibujar Polígonos</h3>
+       <pre class="code-block"><code><span class="comment"># pygame.draw.polygon(superficie, color, lista_de_puntos)</span>
+
+<span class="comment"># Triángulo</span>
+puntos_triangulo = [(<span class="number">400</span>, <span class="number">100</span>), (<span class="number">350</span>, <span class="number">200</span>), (<span class="number">450</span>, <span class="number">200</span>)]
+pygame.draw.<span class="function">polygon</span>(pantalla, ROJO, puntos_triangulo)
+
+<span class="comment"># Hexágono</span>
+puntos_hex = [(<span class="number">600</span>, <span class="number">300</span>), (<span class="number">650</span>, <span class="number">280</span>), (<span class="number">700</span>, <span class="number">300</span>), 
+              (<span class="number">700</span>, <span class="number">350</span>), (<span class="number">650</span>, <span class="number">370</span>), (<span class="number">600</span>, <span class="number">350</span>)]
+pygame.draw.<span class="function">polygon</span>(pantalla, AZUL, puntos_hex, <span class="number">3</span>)  <span class="comment"># 3 = borde</span>
+</code></pre>
+       <h3 class="text-2xl font-semibold text-gray-700 mt-8 mb-3">Tabla de Funciones de Dibujo</h3>
+       <table class="param-table">
+        <thead>
+         <tr>
+          <th>Función</th>
+          <th>Parámetros</th>
+          <th>Ejemplo</th>
+         </tr>
+        </thead>
+        <tbody>
+         <tr>
+          <td><code>rect()</code></td>
+          <td>superficie, color, (x, y, ancho, alto), grosor</td>
+          <td><code>rect(pantalla, RED, (10,10,50,30))</code></td>
+         </tr>
+         <tr>
+          <td><code>circle()</code></td>
+          <td>superficie, color, (x, y), radio, grosor</td>
+          <td><code>circle(pantalla, BLUE, (100,100), 25)</code></td>
+         </tr>
+         <tr>
+          <td><code>line()</code></td>
+          <td>superficie, color, inicio, fin, grosor</td>
+          <td><code>line(pantalla, WHITE, (0,0), (100,100), 2)</code></td>
+         </tr>
+         <tr>
+          <td><code>polygon()</code></td>
+          <td>superficie, color, lista_puntos, grosor</td>
+          <td><code>polygon(pantalla, GREEN, [(10,10),(20,20),(15,30)])</code></td>
+         </tr>
+         <tr>
+          <td><code>ellipse()</code></td>
+          <td>superficie, color, rect, grosor</td>
+          <td><code>ellipse(pantalla, YELLOW, (10,10,80,40))</code></td>
+         </tr>
+        </tbody>
+       </table>
+       <div class="tip-box"><strong>💡 Grosor = 0 vs Grosor &gt; 0:</strong>
+        <ul class="list-disc ml-6 mt-2">
+         <li><strong>grosor = 0</strong> (o sin especificar): La forma se rellena completamente</li>
+         <li><strong>grosor &gt; 0</strong>: Solo se dibuja el borde con ese grosor</li>
+        </ul>
+       </div>
+       <div class="exercise-box">
+        <h4 class="text-xl font-bold text-gray-800 mb-3">🎯 Ejercicio 3: Dibuja una Casa</h4>
+        <p class="text-gray-700 mb-2">Usa las funciones de dibujo para crear una casa simple:</p>
+        <ul class="list-disc ml-6 text-gray-700">
+         <li>Un rectángulo para la base de la casa</li>
+         <li>Un triángulo para el techo</li>
+         <li>Un rectángulo pequeño para la puerta</li>
+         <li>Dos círculos o rectángulos para las ventanas</li>
+         <li>Un círculo amarillo en la esquina para el sol</li>
+        </ul>
+       </div>
+      </section><!-- Section 5: Colores -->
+      <section id="colores" class="content-section bg-white rounded-lg shadow-lg p-8">
+       <h2 class="text-3xl font-bold text-gray-800 mb-4">5. Colores y Superficies</h2>
+       <h3 class="text-2xl font-semibold text-gray-700 mt-6 mb-3">Sistema de Colores RGB</h3>
+       <p class="text-gray-700 mb-4 leading-relaxed">En Pygame, los colores se definen usando el sistema RGB (Red, Green, Blue). Cada componente va de 0 a 255.</p>
+       <div class="important-box"><strong>🎨 Colores RGB:</strong>
+        <ul class="list-disc ml-6 mt-2">
+         <li><strong>(255, 0, 0)</strong> = Rojo puro</li>
+         <li><strong>(0, 255, 0)</strong> = Verde puro</li>
+         <li><strong>(0, 0, 255)</strong> = Azul puro</li>
+         <li><strong>(255, 255, 255)</strong> = Blanco</li>
+         <li><strong>(0, 0, 0)</strong> = Negro</li>
+         <li><strong>(128, 128, 128)</strong> = Gris</li>
+        </ul>
+       </div>
+       <h3 class="text-2xl font-semibold text-gray-700 mt-8 mb-3">Definir Paleta de Colores</h3>
+       <pre class="code-block"><code><span class="keyword">import</span> pygame
+
+<span class="comment"># Colores básicos</span>
+NEGRO = (<span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>)
+BLANCO = (<span class="number">255</span>, <span class="number">255</span>, <span class="number">255</span>)
+ROJO = (<span class="number">255</span>, <span class="number">0</span>, <span class="number">0</span>)
+VERDE = (<span class="number">0</span>, <span class="number">255</span>, <span class="number">0</span>)
+AZUL = (<span class="number">0</span>, <span class="number">0</span>, <span class="number">255</span>)
+
+<span class="comment"># Colores personalizados</span>
+NARANJA = (<span class="number">255</span>, <span class="number">165</span>, <span class="number">0</span>)
+MORADO = (<span class="number">128</span>, <span class="number">0</span>, <span class="number">128</span>)
+CYAN = (<span class="number">0</span>, <span class="number">255</span>, <span class="number">255</span>)
+ROSA = (<span class="number">255</span>, <span class="number">192</span>, <span class="number">203</span>)
+
+<span class="comment"># Colores con transparencia (RGBA - alpha va de 0 a 255)</span>
+ROJO_TRANSPARENTE = (<span class="number">255</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">128</span>)  <span class="comment"># 128 = 50% transparente</span>
+</code></pre>
+       <div class="tip-box"><strong>💡 Consejo:</strong> Define todos tus colores como constantes al principio de tu programa. Esto facilita cambiar la paleta de colores más tarde.
+       </div>
+       <h3 class="text-2xl font-semibold text-gray-700 mt-8 mb-3">¿Qué es una Surface?</h3>
+       <p class="text-gray-700 mb-4">Una <code>Surface</code> es como un lienzo donde puedes dibujar. La pantalla principal es una Surface, pero también puedes crear tus propias Surfaces para dibujar cosas de forma separada.</p>
+       <pre class="code-block"><code><span class="keyword">import</span> pygame
+<span class="keyword">import</span> sys
+
+pygame.<span class="function">init</span>()
+pantalla = pygame.display.<span class="function">set_mode</span>((<span class="number">800</span>, <span class="number">600</span>))
+
+<span class="comment"># Crear una superficie de 200x150 píxeles</span>
+mi_superficie = pygame.<span class="function">Surface</span>((<span class="number">200</span>, <span class="number">150</span>))
+
+<span class="comment"># Llenar la superficie con un color</span>
+mi_superficie.<span class="function">fill</span>((<span class="number">255</span>, <span class="number">100</span>, <span class="number">100</span>))
+
+<span class="comment"># Dibujar un círculo en la superficie</span>
+pygame.draw.<span class="function">circle</span>(mi_superficie, (<span class="number">255</span>, <span class="number">255</span>, <span class="number">0</span>), (<span class="number">100</span>, <span class="number">75</span>), <span class="number">40</span>)
+
+reloj = pygame.time.<span class="function">Clock</span>()
+corriendo = <span class="keyword">True</span>
+<span class="keyword">while</span> corriendo:
+    <span class="keyword">for</span> evento <span class="keyword">in</span> pygame.event.<span class="function">get</span>():
+        <span class="keyword">if</span> evento.type == pygame.QUIT:
+            corriendo = <span class="keyword">False</span>
+    
+    pantalla.<span class="function">fill</span>((<span class="number">50</span>, <span class="number">50</span>, <span class="number">50</span>))
+    
+    <span class="comment"># Dibujar (blit) la superficie en la pantalla en posición (100, 100)</span>
+    pantalla.<span class="function">blit</span>(mi_superficie, (<span class="number">100</span>, <span class="number">100</span>))
+    
+    <span class="comment"># También podemos dibujarla en otra posición</span>
+    pantalla.<span class="function">blit</span>(mi_superficie, (<span class="number">400</span>, <span class="number">300</span>))
+    
+    pygame.display.<span class="function">flip</span>()
+    reloj.<span class="function">tick</span>(<span class="number">60</span>)
+
+pygame.<span class="function">quit</span>()
+sys.<span class="function">exit</span>()
+</code></pre>
+       <h3 class="text-2xl font-semibold text-gray-700 mt-8 mb-3">Transparencia en Surfaces</h3>
+       <pre class="code-block"><code><span class="comment"># Crear superficie con soporte para transparencia</span>
+superficie = pygame.<span class="function">Surface</span>((<span class="number">200</span>, <span class="number">200</span>))
+superficie.<span class="function">set_colorkey</span>((<span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>))  <span class="comment"># Negro = transparente</span>
+
+<span class="comment"># Otra forma: usar SRCALPHA para canal alpha</span>
+superficie_alpha = pygame.<span class="function">Surface</span>((<span class="number">200</span>, <span class="number">200</span>), pygame.SRCALPHA)
+superficie_alpha.<span class="function">fill</span>((<span class="number">255</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">128</span>))  <span class="comment"># Rojo semi-transparente</span>
+
+<span class="comment"># Cambiar opacidad de toda la superficie</span>
+superficie.<span class="function">set_alpha</span>(<span class="number">128</span>)  <span class="comment"># 0 = invisible, 255 = opaco</span>
+</code></pre>
+       <h3 class="text-2xl font-semibold text-gray-700 mt-8 mb-3">Métodos Útiles de Surface</h3>
+       <table class="param-table">
+        <thead>
+         <tr>
+          <th>Método</th>
+          <th>Descripción</th>
+          <th>Ejemplo</th>
+         </tr>
+        </thead>
+        <tbody>
+         <tr>
+          <td><code>fill(color)</code></td>
+          <td>Rellena toda la superficie con un color</td>
+          <td><code>superficie.fill((255,0,0))</code></td>
+         </tr>
+         <tr>
+          <td><code>blit(fuente, destino)</code></td>
+          <td>Dibuja una superficie sobre otra</td>
+          <td><code>pantalla.blit(sprite, (x, y))</code></td>
+         </tr>
+         <tr>
+          <td><code>get_size()</code></td>
+          <td>Obtiene (ancho, alto) de la superficie</td>
+          <td><code>w, h = superficie.get_size()</code></td>
+         </tr>
+         <tr>
+          <td><code>get_rect()</code></td>
+          <td>Obtiene un Rect de la superficie</td>
+          <td><code>rect = superficie.get_rect()</code></td>
+         </tr>
+         <tr>
+          <td><code>convert()</code></td>
+          <td>Optimiza la superficie para mejor rendimiento</td>
+          <td><code>imagen = imagen.convert()</code></td>
+         </tr>
+         <tr>
+          <td><code>set_alpha()</code></td>
+          <td>Establece transparencia (0-255)</td>
+          <td><code>superficie.set_alpha(128)</code></td>
+         </tr>
+        </tbody>
+       </table>
+       <div class="exercise-box">
+        <h4 class="text-xl font-bold text-gray-800 mb-3">🎯 Ejercicio 4: Semáforo</h4>
+        <p class="text-gray-700 mb-2">Crea un semáforo simple:</p>
+        <ul class="list-disc ml-6 text-gray-700">
+         <li>Dibuja un rectángulo negro vertical (el semáforo)</li>
+         <li>Dibuja tres círculos apilados (rojo arriba, amarillo medio, verde abajo)</li>
+         <li>Solo uno debe estar "encendido" (brillante) a la vez</li>
+         <li>Los otros dos deben estar apagados (gris oscuro)</li>
+         <li>Bonus: Haz que cambie de color cada 2 segundos automáticamente</li>
+        </ul>
+       </div>
+      </section><!-- Section 6: Eventos -->
+      <section id="eventos" class="content-section bg-white rounded-lg shadow-lg p-8">
+       <h2 class="text-3xl font-bold text-gray-800 mb-4">6. Manejo de Eventos</h2>
+       <h3 class="text-2xl font-semibold text-gray-700 mt-6 mb-3">¿Qué son los Eventos?</h3>
+       <p class="text-gray-700 mb-4 leading-relaxed">Los eventos son acciones que ocurren durante el juego: presionar una tecla, mover el mouse, hacer clic, etc. Pygame mantiene una cola de eventos que debemos revisar en cada frame.</p>
+       <h3 class="text-2xl font-semibold text-gray-700 mt-6 mb-3">Tipos de Eventos Principales</h3>
+       <table class="param-table">
+        <thead>
+         <tr>
+          <th>Tipo de Evento</th>
+          <th>Cuándo Ocurre</th>
+          <th>Atributos Útiles</th>
+         </tr>
+        </thead>
+        <tbody>
+         <tr>
+          <td><code>QUIT</code></td>
+          <td>Usuario cierra la ventana</td>
+          <td>-</td>
+         </tr>
+         <tr>
+          <td><code>KEYDOWN</code></td>
+          <td>Se presiona una tecla</td>
+          <td><code>evento.key</code></td>
+         </tr>
+         <tr>
+          <td><code>KEYUP</code></td>
+          <td>Se suelta una tecla</td>
+          <td><code>evento.key</code></td>
+         </tr>
+         <tr>
+          <td><code>MOUSEBUTTONDOWN</code></td>
+          <td>Se presiona botón del mouse</td>
+          <td><code>evento.pos, evento.button</code></td>
+         </tr>
+         <tr>
+          <td><code>MOUSEBUTTONUP</code></td>
+          <td>Se suelta botón del mouse</td>
+          <td><code>evento.pos, evento.button</code></td>
+         </tr>
+         <tr>
+          <td><code>MOUSEMOTION</code></td>
+          <td>Se mueve el mouse</td>
+          <td><code>evento.pos, evento.rel</code></td>
+         </tr>
+        </tbody>
+       </table>
+       <h3 class="text-2xl font-semibold text-gray-700 mt-8 mb-3">Eventos del Teclado</h3>
+       <pre class="code-block"><code><span class="keyword">import</span> pygame
+<span class="keyword">import</span> sys
+
+pygame.<span class="function">init</span>()
+pantalla = pygame.display.<span class="function">set_mode</span>((<span class="number">800</span>, <span class="number">600</span>))
+pygame.display.<span class="function">set_caption</span>(<span class="string">"Eventos del Teclado"</span>)
+
+fuente = pygame.font.<span class="function">Font</span>(<span class="keyword">None</span>, <span class="number">36</span>)
+mensaje = <span class="string">"Presiona una tecla"</span>
+
+corriendo = <span class="keyword">True</span>
+<span class="keyword">while</span> corriendo:
+    <span class="keyword">for</span> evento <span class="keyword">in</span> pygame.event.<span class="function">get</span>():
+        <span class="keyword">if</span> evento.type == pygame.QUIT:
+            corriendo = <span class="keyword">False</span>
+        
+        <span class="comment"># Detectar cuando se PRESIONA una tecla</span>
+        <span class="keyword">if</span> evento.type == pygame.KEYDOWN:
+            <span class="keyword">if</span> evento.key == pygame.K_SPACE:
+                mensaje = <span class="string">"Presionaste ESPACIO"</span>
+            <span class="keyword">elif</span> evento.key == pygame.K_RETURN:
+                mensaje = <span class="string">"Presionaste ENTER"</span>
+            <span class="keyword">elif</span> evento.key == pygame.K_ESCAPE:
+                mensaje = <span class="string">"Presionaste ESC"</span>
+                corriendo = <span class="keyword">False</span>
+            <span class="keyword">elif</span> evento.key == pygame.K_UP:
+                mensaje = <span class="string">"Flecha ARRIBA"</span>
+            <span class="keyword">elif</span> evento.key == pygame.K_DOWN:
+                mensaje = <span class="string">"Flecha ABAJO"</span>
+            <span class="keyword">elif</span> evento.key == pygame.K_LEFT:
+                mensaje = <span class="string">"Flecha IZQUIERDA"</span>
+            <span class="keyword">elif</span> evento.key == pygame.K_RIGHT:
+                mensaje = <span class="string">"Flecha DERECHA"</span>
+            <span class="keyword">else</span>:
+                <span class="comment"># Para letras y números</span>
+                mensaje = <span class="string">f"Presionaste: {pygame.key.name(evento.key)}"</span>
+        
+        <span class="comment"># Detectar cuando se SUELTA una tecla</span>
+        <span class="keyword">if</span> evento.type == pygame.KEYUP:
+            mensaje = <span class="string">"Soltaste una tecla"</span>
+    
+    pantalla.<span class="function">fill</span>((<span class="number">30</span>, <span class="number">30</span>, <span class="number">30</span>))
+    texto = fuente.<span class="function">render</span>(mensaje, <span class="keyword">True</span>, (<span class="number">255</span>, <span class="number">255</span>, <span class="number">255</span>))
+    pantalla.<span class="function">blit</span>(texto, (<span class="number">50</span>, <span class="number">250</span>))
+    
+    pygame.display.<span class="function">flip</span>()
+    pygame.time.<span class="function">Clock</span>().<span class="function">tick</span>(<span class="number">60</span>)
+
+pygame.<span class="function">quit</span>()
+sys.<span class="function">exit</span>()
+</code></pre>
+       <h3 class="text-2xl font-semibold text-gray-700 mt-8 mb-3">Constantes de Teclas Comunes</h3>
+       <div class="tip-box"><strong>💡 Teclas Frecuentes:</strong>
+        <ul class="list-disc ml-6 mt-2">
+         <li><code>K_a, K_b, ..., K_z</code> - Letras</li>
+         <li><code>K_0, K_1, ..., K_9</code> - Números</li>
+         <li><code>K_SPACE</code> - Barra espaciadora</li>
+         <li><code>K_RETURN</code> - Enter</li>
+         <li><code>K_ESCAPE</code> - Escape</li>
+         <li><code>K_UP, K_DOWN, K_LEFT, K_RIGHT</code> - Flechas</li>
+         <li><code>K_LSHIFT, K_RSHIFT</code> - Shift</li>
+         <li><code>K_LCTRL, K_RCTRL</code> - Control</li>
+        </ul>
+       </div>
+       <h3 class="text-2xl font-semibold text-gray-700 mt-8 mb-3">Eventos del Mouse</h3>
+       <pre class="code-block"><code><span class="keyword">import</span> pygame
+<span class="keyword">import</span> sys
+
+pygame.<span class="function">init</span>()
+pantalla = pygame.display.<span class="function">set_mode</span>((<span class="number">800</span>, <span class="number">600</span>))
+
+corriendo = <span class="keyword">True</span>
+<span class="keyword">while</span> corriendo:
+    <span class="keyword">for</span> evento <span class="keyword">in</span> pygame.event.<span class="function">get</span>():
+        <span class="keyword">if</span> evento.type == pygame.QUIT:
+            corriendo = <span class="keyword">False</span>
+        
+        <span class="comment"># Click del mouse</span>
+        <span class="keyword">if</span> evento.type == pygame.MOUSEBUTTONDOWN:
+            <span class="comment"># evento.pos = (x, y) posición del click</span>
+            <span class="comment"># evento.button: 1=izquierdo, 2=medio, 3=derecho</span>
+            x, y = evento.pos
+            <span class="keyword">if</span> evento.button == <span class="number">1</span>:
+                <span class="function">print</span>(<span class="string">f"Click izquierdo en ({x}, {y})"</span>)
+                <span class="comment"># Dibujar un círculo donde se hizo click</span>
+                pygame.draw.<span class="function">circle</span>(pantalla, (<span class="number">255</span>, <span class="number">0</span>, <span class="number">0</span>), (x, y), <span class="number">20</span>)
+            <span class="keyword">elif</span> evento.button == <span class="number">3</span>:
+                <span class="function">print</span>(<span class="string">f"Click derecho en ({x}, {y})"</span>)
+        
+        <span class="comment"># Movimiento del mouse</span>
+        <span class="keyword">if</span> evento.type == pygame.MOUSEMOTION:
+            <span class="comment"># evento.pos = posición actual</span>
+            <span class="comment"># evento.rel = (dx, dy) movimiento relativo</span>
+            x, y = evento.pos
+            dx, dy = evento.rel
+            <span class="function">print</span>(<span class="string">f"Mouse en ({x}, {y}), movió ({dx}, {dy})"</span>)
+    
+    pygame.display.<span class="function">flip</span>()
+
+pygame.<span class="function">quit</span>()
+sys.<span class="function">exit</span>()
+</code></pre>
+       <h3 class="text-2xl font-semibold text-gray-700 mt-8 mb-3">Obtener Estado del Teclado (Continuo)</h3>
+       <p class="text-gray-700 mb-4">A veces queremos saber si una tecla está siendo presionada continuamente, no solo cuando se presiona por primera vez:</p>
+       <pre class="code-block"><code><span class="keyword">import</span> pygame
+<span class="keyword">import</span> sys
+
+pygame.<span class="function">init</span>()
+pantalla = pygame.display.<span class="function">set_mode</span>((<span class="number">800</span>, <span class="number">600</span>))
+
+<span class="comment"># Posición del jugador</span>
+x, y = <span class="number">400</span>, <span class="number">300</span>
+velocidad = <span class="number">5</span>
+
+corriendo = <span class="keyword">True</span>
+<span class="keyword">while</span> corriendo:
+    <span class="keyword">for</span> evento <span class="keyword">in</span> pygame.event.<span class="function">get</span>():
+        <span class="keyword">if</span> evento.type == pygame.QUIT:
+            corriendo = <span class="keyword">False</span>
+    
+    <span class="comment"># Obtener estado de TODAS las teclas</span>
+    teclas = pygame.key.<span class="function">get_pressed</span>()
+    
+    <span class="comment"># Mover mientras las teclas estén presionadas</span>
+    <span class="keyword">if</span> teclas[pygame.K_LEFT]:
+        x -= velocidad
+    <span class="keyword">if</span> teclas[pygame.K_RIGHT]:
+        x += velocidad
+    <span class="keyword">if</span> teclas[pygame.K_UP]:
+        y -= velocidad
+    <span class="keyword">if</span> teclas[pygame.K_DOWN]:
+        y += velocidad
+    
+    pantalla.<span class="function">fill</span>((<span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>))
+    pygame.draw.<span class="function">circle</span>(pantalla, (<span class="number">0</span>, <span class="number">255</span>, <span class="number">0</span>), (<span class="keyword">int</span>(x), <span class="keyword">int</span>(y)), <span class="number">20</span>)
+    
+    pygame.display.<span class="function">flip</span>()
+    pygame.time.<span class="function">Clock</span>().<span class="function">tick</span>(<span class="number">60</span>)
+
+pygame.<span class="function">quit</span>()
+sys.<span class="function">exit</span>()
+</code></pre>
+       <div class="important-box"><strong>🎯 KEYDOWN vs get_pressed():</strong>
+        <ul class="list-disc ml-6 mt-2">
+         <li><strong>KEYDOWN:</strong> Se activa UNA VEZ cuando presionas la tecla. Ideal para acciones únicas (saltar, disparar)</li>
+         <li><strong>get_pressed():</strong> Devuelve True mientras la tecla esté presionada. Ideal para movimiento continuo</li>
+        </ul>
+       </div>
+       <div class="exercise-box">
+        <h4 class="text-xl font-bold text-gray-800 mb-3">🎯 Ejercicio 5: Pintura Simple</h4>
+        <p class="text-gray-700 mb-2">Crea un programa de dibujo básico:</p>
+        <ul class="list-disc ml-6 text-gray-700">
+         <li>Dibuja círculos pequeños donde el usuario haga clic</li>
+         <li>Presionar 'R' cambia el color a rojo</li>
+         <li>Presionar 'G' cambia el color a verde</li>
+         <li>Presionar 'B' cambia el color a azul</li>
+         <li>Presionar 'C' limpia la pantalla</li>
+         <li>Presionar las teclas 1-5 cambia el tamaño del pincel</li>
+        </ul>
+       </div>
+      </section><!-- Las secciones 7, 8, 9 y 10 continúan... se enviarán en el siguiente mensaje -->
+<!-- Section 7: Movimiento -->
+      <section id="movimiento" class="content-section active bg-white rounded-lg shadow-lg p-8">
+       <h2 class="text-3xl font-bold text-gray-800 mb-4">7. Movimiento y Física Básica</h2>
+       <h3 class="text-2xl font-semibold text-gray-700 mt-6 mb-3">Conceptos de Movimiento</h3>
+       <p class="text-gray-700 mb-4 leading-relaxed">Para crear movimiento en Pygame, simplemente cambiamos la posición de los objetos en cada frame. Esto crea la ilusión de movimiento.</p>
+       <h3 class="text-2xl font-semibold text-gray-700 mt-6 mb-3">Movimiento Simple</h3>
+       <pre class="code-block"><code><span class="keyword">import</span> pygame
+<span class="keyword">import</span> sys
+
+pygame.<span class="function">init</span>()
+pantalla = pygame.display.<span class="function">set_mode</span>((<span class="number">800</span>, <span class="number">600</span>))
+reloj = pygame.time.<span class="function">Clock</span>()
+
+<span class="comment"># Posición inicial del objeto</span>
+x = <span class="number">100</span>
+y = <span class="number">300</span>
+
+<span class="comment"># Velocidad (píxeles por frame)</span>
+velocidad_x = <span class="number">3</span>
+velocidad_y = <span class="number">2</span>
+
+corriendo = <span class="keyword">True</span>
+<span class="keyword">while</span> corriendo:
+    <span class="keyword">for</span> evento <span class="keyword">in</span> pygame.event.<span class="function">get</span>():
+        <span class="keyword">if</span> evento.type == pygame.QUIT:
+            corriendo = <span class="keyword">False</span>
+    
+    <span class="comment"># Actualizar posición</span>
+    x += velocidad_x
+    y += velocidad_y
+    
+    <span class="comment"># Rebotar en los bordes</span>
+    <span class="keyword">if</span> x &gt; <span class="number">800</span> <span class="keyword">or</span> x &lt; <span class="number">0</span>:
+        velocidad_x = -velocidad_x
+    <span class="keyword">if</span> y &gt; <span class="number">600</span> <span class="keyword">or</span> y &lt; <span class="number">0</span>:
+        velocidad_y = -velocidad_y
+    
+    pantalla.<span class="function">fill</span>((<span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>))
+    pygame.draw.<span class="function">circle</span>(pantalla, (<span class="number">255</span>, <span class="number">255</span>, <span class="number">0</span>), (<span class="keyword">int</span>(x), <span class="keyword">int</span>(y)), <span class="number">20</span>)
+    
+    pygame.display.<span class="function">flip</span>()
+    reloj.<span class="function">tick</span>(<span class="number">60</span>)
+
+pygame.<span class="function">quit</span>()
+sys.<span class="function">exit</span>()
+</code></pre>
+       <h3 class="text-2xl font-semibold text-gray-700 mt-8 mb-3">Movimiento con Teclado</h3>
+       <pre class="code-block"><code><span class="keyword">import</span> pygame
+<span class="keyword">import</span> sys
+
+pygame.<span class="function">init</span>()
+pantalla = pygame.display.<span class="function">set_mode</span>((<span class="number">800</span>, <span class="number">600</span>))
+reloj = pygame.time.<span class="function">Clock</span>()
+
+<span class="comment"># Jugador</span>
+jugador_x = <span class="number">400</span>
+jugador_y = <span class="number">300</span>
+velocidad = <span class="number">5</span>
+
+corriendo = <span class="keyword">True</span>
+<span class="keyword">while</span> corriendo:
+    <span class="keyword">for</span> evento <span class="keyword">in</span> pygame.event.<span class="function">get</span>():
+        <span class="keyword">if</span> evento.type == pygame.QUIT:
+            corriendo = <span class="keyword">False</span>
+    
+    <span class="comment"># Obtener teclas presionadas</span>
+    teclas = pygame.key.<span class="function">get_pressed</span>()
+    
+    <span class="comment"># Movimiento en 4 direcciones</span>
+    <span class="keyword">if</span> teclas[pygame.K_LEFT]:
+        jugador_x -= velocidad
+    <span class="keyword">if</span> teclas[pygame.K_RIGHT]:
+        jugador_x += velocidad
+    <span class="keyword">if</span> teclas[pygame.K_UP]:
+        jugador_y -= velocidad
+    <span class="keyword">if</span> teclas[pygame.K_DOWN]:
+        jugador_y += velocidad
+    
+    <span class="comment"># Limitar a los bordes de la pantalla</span>
+    jugador_x = <span class="function">max</span>(<span class="number">0</span>, <span class="function">min</span>(jugador_x, <span class="number">800</span>))
+    jugador_y = <span class="function">max</span>(<span class="number">0</span>, <span class="function">min</span>(jugador_y, <span class="number">600</span>))
+    
+    pantalla.<span class="function">fill</span>((<span class="number">30</span>, <span class="number">30</span>, <span class="number">50</span>))
+    pygame.draw.<span class="function">rect</span>(pantalla, (<span class="number">0</span>, <span class="number">255</span>, <span class="number">0</span>), (jugador_x, jugador_y, <span class="number">40</span>, <span class="number">40</span>))
+    
+    pygame.display.<span class="function">flip</span>()
+    reloj.<span class="function">tick</span>(<span class="number">60</span>)
+
+pygame.<span class="function">quit</span>()
+sys.<span class="function">exit</span>()
+</code></pre>
+       <h3 class="text-2xl font-semibold text-gray-700 mt-8 mb-3">Gravedad Básica</h3>
+       <pre class="code-block"><code><span class="keyword">import</span> pygame
+<span class="keyword">import</span> sys
+
+pygame.<span class="function">init</span>()
+pantalla = pygame.display.<span class="function">set_mode</span>((<span class="number">800</span>, <span class="number">600</span>))
+reloj = pygame.time.<span class="function">Clock</span>()
+
+<span class="comment"># Posición y velocidad</span>
+x = <span class="number">400</span>
+y = <span class="number">100</span>
+velocidad_y = <span class="number">0</span>
+gravedad = <span class="number">0.5</span>  <span class="comment"># Aceleración hacia abajo</span>
+suelo = <span class="number">550</span>
+
+corriendo = <span class="keyword">True</span>
+<span class="keyword">while</span> corriendo:
+    <span class="keyword">for</span> evento <span class="keyword">in</span> pygame.event.<span class="function">get</span>():
+        <span class="keyword">if</span> evento.type == pygame.QUIT:
+            corriendo = <span class="keyword">False</span>
+        <span class="comment"># Saltar con ESPACIO</span>
+        <span class="keyword">if</span> evento.type == pygame.KEYDOWN:
+            <span class="keyword">if</span> evento.key == pygame.K_SPACE <span class="keyword">and</span> y &gt;= suelo:
+                velocidad_y = -<span class="number">15</span>  <span class="comment"># Impulso hacia arriba</span>
+    
+    <span class="comment"># Aplicar gravedad</span>
+    velocidad_y += gravedad
+    y += velocidad_y
+    
+    <span class="comment"># Colisión con el suelo</span>
+    <span class="keyword">if</span> y &gt;= suelo:
+        y = suelo
+        velocidad_y = <span class="number">0</span>
+    
+    pantalla.<span class="function">fill</span>((<span class="number">135</span>, <span class="number">206</span>, <span class="number">235</span>))  <span class="comment"># Azul cielo</span>
+    <span class="comment"># Dibujar suelo</span>
+    pygame.draw.<span class="function">rect</span>(pantalla, (<span class="number">34</span>, <span class="number">139</span>, <span class="number">34</span>), (<span class="number">0</span>, suelo + <span class="number">20</span>, <span class="number">800</span>, <span class="number">50</span>))
+    <span class="comment"># Dibujar jugador</span>
+    pygame.draw.<span class="function">rect</span>(pantalla, (<span class="number">255</span>, <span class="number">0</span>, <span class="number">0</span>), (x, <span class="keyword">int</span>(y), <span class="number">40</span>, <span class="number">40</span>))
+    
+    pygame.display.<span class="function">flip</span>()
+    reloj.<span class="function">tick</span>(<span class="number">60</span>)
+
+pygame.<span class="function">quit</span>()
+sys.<span class="function">exit</span>()
+</code></pre>
+       <div class="important-box"><strong>🎯 Conceptos Clave de Física:</strong>
+        <ul class="list-disc ml-6 mt-2">
+         <li><strong>Velocidad:</strong> Cuánto cambia la posición por frame</li>
+         <li><strong>Aceleración:</strong> Cuánto cambia la velocidad por frame (como la gravedad)</li>
+         <li><strong>Fricción:</strong> Multiplicar velocidad por un valor &lt; 1 (ej: 0.95) para desacelerar</li>
+        </ul>
+       </div>
+       <h3 class="text-2xl font-semibold text-gray-700 mt-8 mb-3">Movimiento Suave (Delta Time)</h3>
+       <p class="text-gray-700 mb-4">Para que el movimiento sea independiente de los FPS, usamos "delta time":</p>
+       <pre class="code-block"><code><span class="keyword">import</span> pygame
+<span class="keyword">import</span> sys
+
+pygame.<span class="function">init</span>()
+pantalla = pygame.display.<span class="function">set_mode</span>((<span class="number">800</span>, <span class="number">600</span>))
+reloj = pygame.time.<span class="function">Clock</span>()
+
+x = <span class="number">100</span>
+velocidad = <span class="number">200</span>  <span class="comment"># Píxeles por SEGUNDO (no por frame)</span>
+
+corriendo = <span class="keyword">True</span>
+<span class="keyword">while</span> corriendo:
+    <span class="comment"># Delta time en segundos</span>
+    dt = reloj.<span class="function">tick</span>(<span class="number">60</span>) / <span class="number">1000.0</span>
+    
+    <span class="keyword">for</span> evento <span class="keyword">in</span> pygame.event.<span class="function">get</span>():
+        <span class="keyword">if</span> evento.type == pygame.QUIT:
+            corriendo = <span class="keyword">False</span>
+    
+    <span class="comment"># Movimiento basado en tiempo</span>
+    x += velocidad * dt
+    
+    <span class="keyword">if</span> x &gt; <span class="number">800</span>:
+        x = <span class="number">0</span>
+    
+    pantalla.<span class="function">fill</span>((<span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>))
+    pygame.draw.<span class="function">circle</span>(pantalla, (<span class="number">255</span>, <span class="number">255</span>, <span class="number">0</span>), (<span class="keyword">int</span>(x), <span class="number">300</span>), <span class="number">20</span>)
+    
+    pygame.display.<span class="function">flip</span>()
+
+pygame.<span class="function">quit</span>()
+sys.<span class="function">exit</span>()
+</code></pre>
+       <div class="exercise-box">
+        <h4 class="text-xl font-bold text-gray-800 mb-3">🎯 Ejercicio 6: Juego de Esquivar</h4>
+        <p class="text-gray-700 mb-2">Crea un juego simple:</p>
+        <ul class="list-disc ml-6 text-gray-700">
+         <li>Un cuadrado controlado por el jugador (flechas izquierda/derecha)</li>
+         <li>Círculos que caen desde arriba (gravedad)</li>
+         <li>Los círculos reaparecen arriba cuando tocan el suelo</li>
+         <li>Contador de cuántos círculos has esquivado</li>
+        </ul>
+       </div>
+      </section><!-- Section 8: Colisiones -->
+      <section id="colisiones" class="content-section bg-white rounded-lg shadow-lg p-8">
+       <h2 class="text-3xl font-bold text-gray-800 mb-4">8. Detección de Colisiones</h2>
+       <h3 class="text-2xl font-semibold text-gray-700 mt-6 mb-3">El Objeto Rect</h3>
+       <p class="text-gray-700 mb-4 leading-relaxed"><code>pygame.Rect</code> es fundamental para detectar colisiones. Representa un rectángulo y tiene muchos métodos útiles.</p>
+       <pre class="code-block"><code><span class="keyword">import</span> pygame
+
+<span class="comment"># Crear un Rect: Rect(x, y, ancho, alto)</span>
+rectangulo = pygame.<span class="function">Rect</span>(<span class="number">100</span>, <span class="number">150</span>, <span class="number">50</span>, <span class="number">80</span>)
+
+<span class="comment"># Propiedades útiles del Rect</span>
+<span class="function">print</span>(rectangulo.x)          <span class="comment"># Posición X</span>
+<span class="function">print</span>(rectangulo.y)          <span class="comment"># Posición Y</span>
+<span class="function">print</span>(rectangulo.width)      <span class="comment"># Ancho</span>
+<span class="function">print</span>(rectangulo.height)     <span class="comment"># Alto</span>
+
+<span class="comment"># Puntos especiales</span>
+<span class="function">print</span>(rectangulo.center)     <span class="comment"># (x_centro, y_centro)</span>
+<span class="function">print</span>(rectangulo.centerx)    <span class="comment"># X del centro</span>
+<span class="function">print</span>(rectangulo.centery)    <span class="comment"># Y del centro</span>
+<span class="function">print</span>(rectangulo.top)        <span class="comment"># Y superior</span>
+<span class="function">print</span>(rectangulo.bottom)     <span class="comment"># Y inferior</span>
+<span class="function">print</span>(rectangulo.left)       <span class="comment"># X izquierda</span>
+<span class="function">print</span>(rectangulo.right)      <span class="comment"># X derecha</span>
+
+<span class="comment"># Cambiar posición usando estos atributos</span>
+rectangulo.center = (<span class="number">400</span>, <span class="number">300</span>)  <span class="comment"># Centrar en (400, 300)</span>
+rectangulo.bottom = <span class="number">600</span>          <span class="comment"># Poner en el suelo</span>
+</code></pre>
+       <h3 class="text-2xl font-semibold text-gray-700 mt-8 mb-3">Colisión entre Rectángulos</h3>
+       <pre class="code-block"><code><span class="keyword">import</span> pygame
+<span class="keyword">import</span> sys
+
+pygame.<span class="function">init</span>()
+pantalla = pygame.display.<span class="function">set_mode</span>((<span class="number">800</span>, <span class="number">600</span>))
+reloj = pygame.time.<span class="function">Clock</span>()
+
+<span class="comment"># Crear dos rectángulos</span>
+jugador = pygame.<span class="function">Rect</span>(<span class="number">100</span>, <span class="number">250</span>, <span class="number">50</span>, <span class="number">50</span>)
+obstaculo = pygame.<span class="function">Rect</span>(<span class="number">400</span>, <span class="number">250</span>, <span class="number">60</span>, <span class="number">80</span>)
+
+velocidad = <span class="number">5</span>
+
+corriendo = <span class="keyword">True</span>
+<span class="keyword">while</span> corriendo:
+    <span class="keyword">for</span> evento <span class="keyword">in</span> pygame.event.<span class="function">get</span>():
+        <span class="keyword">if</span> evento.type == pygame.QUIT:
+            corriendo = <span class="keyword">False</span>
+    
+    <span class="comment"># Mover jugador</span>
+    teclas = pygame.key.<span class="function">get_pressed</span>()
+    <span class="keyword">if</span> teclas[pygame.K_LEFT]:
+        jugador.x -= velocidad
+    <span class="keyword">if</span> teclas[pygame.K_RIGHT]:
+        jugador.x += velocidad
+    <span class="keyword">if</span> teclas[pygame.K_UP]:
+        jugador.y -= velocidad
+    <span class="keyword">if</span> teclas[pygame.K_DOWN]:
+        jugador.y += velocidad
+    
+    <span class="comment"># Detectar colisión</span>
+    colision = jugador.<span class="function">colliderect</span>(obstaculo)
+    
+    pantalla.<span class="function">fill</span>((<span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>))
+    
+    <span class="comment"># Cambiar color si hay colisión</span>
+    color_jugador = (<span class="number">255</span>, <span class="number">0</span>, <span class="number">0</span>) <span class="keyword">if</span> colision <span class="keyword">else</span> (<span class="number">0</span>, <span class="number">255</span>, <span class="number">0</span>)
+    
+    pygame.draw.<span class="function">rect</span>(pantalla, color_jugador, jugador)
+    pygame.draw.<span class="function">rect</span>(pantalla, (<span class="number">255</span>, <span class="number">255</span>, <span class="number">0</span>), obstaculo)
+    
+    pygame.display.<span class="function">flip</span>()
+    reloj.<span class="function">tick</span>(<span class="number">60</span>)
+
+pygame.<span class="function">quit</span>()
+sys.<span class="function">exit</span>()
+</code></pre>
+       <h3 class="text-2xl font-semibold text-gray-700 mt-8 mb-3">Métodos de Colisión</h3>
+       <table class="param-table">
+        <thead>
+         <tr>
+          <th>Método</th>
+          <th>Descripción</th>
+          <th>Retorna</th>
+         </tr>
+        </thead>
+        <tbody>
+         <tr>
+          <td><code>colliderect(otro_rect)</code></td>
+          <td>¿Colisiona con otro rectángulo?</td>
+          <td>True/False</td>
+         </tr>
+         <tr>
+          <td><code>collidepoint(x, y)</code></td>
+          <td>¿Contiene un punto?</td>
+          <td>True/False</td>
+         </tr>
+         <tr>
+          <td><code>collidelist(lista)</code></td>
+          <td>Índice del primer rect con colisión</td>
+          <td>Índice o -1</td>
+         </tr>
+         <tr>
+          <td><code>collidelistall(lista)</code></td>
+          <td>Todos los índices con colisión</td>
+          <td>Lista de índices</td>
+         </tr>
+        </tbody>
+       </table>
+       <h3 class="text-2xl font-semibold text-gray-700 mt-8 mb-3">Colisión con Punto (Click del Mouse)</h3>
+       <pre class="code-block"><code><span class="keyword">import</span> pygame
+<span class="keyword">import</span> sys
+
+pygame.<span class="function">init</span>()
+pantalla = pygame.display.<span class="function">set_mode</span>((<span class="number">800</span>, <span class="number">600</span>))
+
+<span class="comment"># Crear un botón</span>
+boton = pygame.<span class="function">Rect</span>(<span class="number">300</span>, <span class="number">250</span>, <span class="number">200</span>, <span class="number">80</span>)
+mensaje = <span class="string">"Haz clic en el botón"</span>
+
+corriendo = <span class="keyword">True</span>
+<span class="keyword">while</span> corriendo:
+    <span class="keyword">for</span> evento <span class="keyword">in</span> pygame.event.<span class="function">get</span>():
+        <span class="keyword">if</span> evento.type == pygame.QUIT:
+            corriendo = <span class="keyword">False</span>
+        
+        <span class="keyword">if</span> evento.type == pygame.MOUSEBUTTONDOWN:
+            <span class="comment"># Verificar si el click está dentro del botón</span>
+            <span class="keyword">if</span> boton.<span class="function">collidepoint</span>(evento.pos):
+                mensaje = <span class="string">"¡Botón presionado!"</span>
+            <span class="keyword">else</span>:
+                mensaje = <span class="string">"Clic fuera del botón"</span>
+    
+    pantalla.<span class="function">fill</span>((<span class="number">50</span>, <span class="number">50</span>, <span class="number">50</span>))
+    
+    <span class="comment"># Destacar botón si mouse está sobre él</span>
+    mouse_pos = pygame.mouse.<span class="function">get_pos</span>()
+    color = (<span class="number">0</span>, <span class="number">200</span>, <span class="number">0</span>) <span class="keyword">if</span> boton.<span class="function">collidepoint</span>(mouse_pos) <span class="keyword">else</span> (<span class="number">0</span>, <span class="number">150</span>, <span class="number">0</span>)
+    
+    pygame.draw.<span class="function">rect</span>(pantalla, color, boton)
+    
+    fuente = pygame.font.<span class="function">Font</span>(<span class="keyword">None</span>, <span class="number">36</span>)
+    texto = fuente.<span class="function">render</span>(mensaje, <span class="keyword">True</span>, (<span class="number">255</span>, <span class="number">255</span>, <span class="number">255</span>))
+    pantalla.<span class="function">blit</span>(texto, (<span class="number">50</span>, <span class="number">100</span>))
+    
+    pygame.display.<span class="function">flip</span>()
+
+pygame.<span class="function">quit</span>()
+sys.<span class="function">exit</span>()
+</code></pre>
+       <h3 class="text-2xl font-semibold text-gray-700 mt-8 mb-3">Colisión Circular (Distancia)</h3>
+       <pre class="code-block"><code><span class="keyword">import</span> pygame
+<span class="keyword">import</span> math
+
+<span class="comment"># Función para detectar colisión entre círculos</span>
+<span class="keyword">def</span> <span class="function">colision_circular</span>(x1, y1, radio1, x2, y2, radio2):
+    <span class="comment"># Calcular distancia entre centros</span>
+    distancia = math.<span class="function">sqrt</span>((x2 - x1)**<span class="number">2</span> + (y2 - y1)**<span class="number">2</span>)
+    <span class="comment"># Hay colisión si distancia &lt; suma de radios</span>
+    <span class="keyword">return</span> distancia &lt; (radio1 + radio2)
+
+<span class="comment"># Ejemplo de uso</span>
+pygame.<span class="function">init</span>()
+pantalla = pygame.display.<span class="function">set_mode</span>((<span class="number">800</span>, <span class="number">600</span>))
+reloj = pygame.time.<span class="function">Clock</span>()
+
+circulo1_x, circulo1_y = <span class="number">200</span>, <span class="number">300</span>
+circulo2_x, circulo2_y = <span class="number">600</span>, <span class="number">300</span>
+radio = <span class="number">40</span>
+
+corriendo = <span class="keyword">True</span>
+<span class="keyword">while</span> corriendo:
+    <span class="keyword">for</span> evento <span class="keyword">in</span> pygame.event.<span class="function">get</span>():
+        <span class="keyword">if</span> evento.type == pygame.QUIT:
+            corriendo = <span class="keyword">False</span>
+    
+    <span class="comment"># Mover círculo 1 con teclas</span>
+    teclas = pygame.key.<span class="function">get_pressed</span>()
+    <span class="keyword">if</span> teclas[pygame.K_LEFT]:
+        circulo1_x -= <span class="number">3</span>
+    <span class="keyword">if</span> teclas[pygame.K_RIGHT]:
+        circulo1_x += <span class="number">3</span>
+    <span class="keyword">if</span> teclas[pygame.K_UP]:
+        circulo1_y -= <span class="number">3</span>
+    <span class="keyword">if</span> teclas[pygame.K_DOWN]:
+        circulo1_y += <span class="number">3</span>
+    
+    <span class="comment"># Detectar colisión</span>
+    hay_colision = <span class="function">colision_circular</span>(
+        circulo1_x, circulo1_y, radio,
+        circulo2_x, circulo2_y, radio
+    )
+    
+    pantalla.<span class="function">fill</span>((<span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>))
+    
+    color1 = (<span class="number">255</span>, <span class="number">0</span>, <span class="number">0</span>) <span class="keyword">if</span> hay_colision <span class="keyword">else</span> (<span class="number">0</span>, <span class="number">255</span>, <span class="number">0</span>)
+    pygame.draw.<span class="function">circle</span>(pantalla, color1, (circulo1_x, circulo1_y), radio)
+    pygame.draw.<span class="function">circle</span>(pantalla, (<span class="number">255</span>, <span class="number">255</span>, <span class="number">0</span>), (circulo2_x, circulo2_y), radio)
+    
+    pygame.display.<span class="function">flip</span>()
+    reloj.<span class="function">tick</span>(<span class="number">60</span>)
+
+pygame.<span class="function">quit</span>()
+</code></pre>
+       <div class="exercise-box">
+        <h4 class="text-xl font-bold text-gray-800 mb-3">🎯 Ejercicio 7: Juego de Recolección</h4>
+        <p class="text-gray-700 mb-2">Crea un juego donde:</p>
+        <ul class="list-disc ml-6 text-gray-700">
+         <li>Un cuadrado es el jugador (controlado con flechas)</li>
+         <li>5 círculos pequeños son monedas en posiciones aleatorias</li>
+         <li>Al tocar una moneda, desaparece y suma 1 punto</li>
+         <li>Muestra el puntaje en pantalla</li>
+         <li>Cuando recolectes todas, aparece mensaje de victoria</li>
+        </ul>
+       </div>
+      </section><!-- Section 9: Sprites -->
+      <section id="sprites" class="content-section bg-white rounded-lg shadow-lg p-8">
+       <h2 class="text-3xl font-bold text-gray-800 mb-4">9. Sprites e Imágenes</h2>
+       <h3 class="text-2xl font-semibold text-gray-700 mt-6 mb-3">¿Qué es un Sprite?</h3>
+       <p class="text-gray-700 mb-4 leading-relaxed">Un sprite es un objeto del juego con gráficos, posición y comportamiento. Pygame tiene una clase <code>Sprite</code> que facilita organizar objetos del juego.</p>
+       <h3 class="text-2xl font-semibold text-gray-700 mt-6 mb-3">Cargar y Mostrar Imágenes</h3>
+       <pre class="code-block"><code><span class="keyword">import</span> pygame
+<span class="keyword">import</span> sys
+
+pygame.<span class="function">init</span>()
+pantalla = pygame.display.<span class="function">set_mode</span>((<span class="number">800</span>, <span class="number">600</span>))
+
+<span class="comment"># Cargar una imagen</span>
+<span class="comment"># Asegúrate de tener un archivo "jugador.png" en la misma carpeta</span>
+imagen = pygame.image.<span class="function">load</span>(<span class="string">"jugador.png"</span>)
+
+<span class="comment"># Convertir para mejor rendimiento</span>
+imagen = imagen.<span class="function">convert_alpha</span>()
+
+<span class="comment"># Obtener el rectángulo de la imagen</span>
+rect_imagen = imagen.<span class="function">get_rect</span>()
+rect_imagen.center = (<span class="number">400</span>, <span class="number">300</span>)
+
+corriendo = <span class="keyword">True</span>
+<span class="keyword">while</span> corriendo:
+    <span class="keyword">for</span> evento <span class="keyword">in</span> pygame.event.<span class="function">get</span>():
+        <span class="keyword">if</span> evento.type == pygame.QUIT:
+            corriendo = <span class="keyword">False</span>
+    
+    pantalla.<span class="function">fill</span>((<span class="number">135</span>, <span class="number">206</span>, <span class="number">235</span>))
+    
+    <span class="comment"># Dibujar imagen en pantalla</span>
+    pantalla.<span class="function">blit</span>(imagen, rect_imagen)
+    
+    pygame.display.<span class="function">flip</span>()
+
+pygame.<span class="function">quit</span>()
+sys.<span class="function">exit</span>()
+</code></pre>
+       <div class="tip-box"><strong>💡 Formatos de Imagen:</strong>
+        <ul class="list-disc ml-6 mt-2">
+         <li><strong>PNG:</strong> Recomendado, soporta transparencia</li>
+         <li><strong>JPG:</strong> Para fotos, sin transparencia</li>
+         <li><strong>convert_alpha():</strong> Optimiza imágenes con transparencia</li>
+         <li><strong>convert():</strong> Optimiza imágenes sin transparencia</li>
+        </ul>
+       </div>
+       <h3 class="text-2xl font-semibold text-gray-700 mt-8 mb-3">Transformar Imágenes</h3>
+       <pre class="code-block"><code><span class="keyword">import</span> pygame
+
+<span class="comment"># Cargar imagen original</span>
+imagen = pygame.image.<span class="function">load</span>(<span class="string">"sprite.png"</span>).<span class="function">convert_alpha</span>()
+
+<span class="comment"># Escalar imagen (ancho, alto)</span>
+imagen_grande = pygame.transform.<span class="function">scale</span>(imagen, (<span class="number">100</span>, <span class="number">100</span>))
+
+<span class="comment"># Escalar manteniendo proporciones (multiplicador)</span>
+imagen_doble = pygame.transform.<span class="function">scale_by</span>(imagen, <span class="number">2</span>)
+
+<span class="comment"># Rotar imagen (grados en sentido antihorario)</span>
+imagen_rotada = pygame.transform.<span class="function">rotate</span>(imagen, <span class="number">45</span>)
+
+<span class="comment"># Voltear imagen (horizontal, vertical)</span>
+imagen_volteada = pygame.transform.<span class="function">flip</span>(imagen, <span class="keyword">True</span>, <span class="keyword">False</span>)  <span class="comment"># Volteo horizontal</span>
+
+<span class="comment"># Rosuavizar escala (más lento pero mejor calidad)</span>
+imagen_suave = pygame.transform.<span class="function">smoothscale</span>(imagen, (<span class="number">200</span>, <span class="number">200</span>))
+</code></pre>
+       <h3 class="text-2xl font-semibold text-gray-700 mt-8 mb-3">Crear una Clase Sprite</h3>
+       <pre class="code-block"><code><span class="keyword">import</span> pygame
+<span class="keyword">import</span> sys
+
+pygame.<span class="function">init</span>()
+pantalla = pygame.display.<span class="function">set_mode</span>((<span class="number">800</span>, <span class="number">600</span>))
+reloj = pygame.time.<span class="function">Clock</span>()
+
+<span class="comment"># Definir clase para el jugador</span>
+<span class="keyword">class</span> <span class="function">Jugador</span>(pygame.sprite.Sprite):
+    <span class="keyword">def</span> <span class="function">__init__</span>(<span class="keyword">self</span>, x, y):
+        <span class="function">super</span>().<span class="function">__init__</span>()
+        <span class="comment"># Crear una superficie como imagen</span>
+        <span class="keyword">self</span>.image = pygame.<span class="function">Surface</span>((<span class="number">50</span>, <span class="number">50</span>))
+        <span class="keyword">self</span>.image.<span class="function">fill</span>((<span class="number">0</span>, <span class="number">255</span>, <span class="number">0</span>))
+        <span class="keyword">self</span>.rect = <span class="keyword">self</span>.image.<span class="function">get_rect</span>()
+        <span class="keyword">self</span>.rect.center = (x, y)
+        <span class="keyword">self</span>.velocidad = <span class="number">5</span>
+    
+    <span class="keyword">def</span> <span class="function">update</span>(<span class="keyword">self</span>):
+        <span class="comment"># Actualizar posición</span>
+        teclas = pygame.key.<span class="function">get_pressed</span>()
+        <span class="keyword">if</span> teclas[pygame.K_LEFT]:
+            <span class="keyword">self</span>.rect.x -= <span class="keyword">self</span>.velocidad
+        <span class="keyword">if</span> teclas[pygame.K_RIGHT]:
+            <span class="keyword">self</span>.rect.x += <span class="keyword">self</span>.velocidad
+        <span class="keyword">if</span> teclas[pygame.K_UP]:
+            <span class="keyword">self</span>.rect.y -= <span class="keyword">self</span>.velocidad
+        <span class="keyword">if</span> teclas[pygame.K_DOWN]:
+            <span class="keyword">self</span>.rect.y += <span class="keyword">self</span>.velocidad
+
+<span class="comment"># Crear grupo de sprites</span>
+todos_sprites = pygame.sprite.<span class="function">Group</span>()
+jugador = <span class="function">Jugador</span>(<span class="number">400</span>, <span class="number">300</span>)
+todos_sprites.<span class="function">add</span>(jugador)
+
+corriendo = <span class="keyword">True</span>
+<span class="keyword">while</span> corriendo:
+    <span class="keyword">for</span> evento <span class="keyword">in</span> pygame.event.<span class="function">get</span>():
+        <span class="keyword">if</span> evento.type == pygame.QUIT:
+            corriendo = <span class="keyword">False</span>
+    
+    <span class="comment"># Actualizar todos los sprites</span>
+    todos_sprites.<span class="function">update</span>()
+    
+    pantalla.<span class="function">fill</span>((<span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>))
+    
+    <span class="comment"># Dibujar todos los sprites</span>
+    todos_sprites.<span class="function">draw</span>(pantalla)
+    
+    pygame.display.<span class="function">flip</span>()
+    reloj.<span class="function">tick</span>(<span class="number">60</span>)
+
+pygame.<span class="function">quit</span>()
+sys.<span class="function">exit</span>()
+</code></pre>
+       <h3 class="text-2xl font-semibold text-gray-700 mt-8 mb-3">Grupos de Sprites</h3>
+       <table class="param-table">
+        <thead>
+         <tr>
+          <th>Método de Group</th>
+          <th>Descripción</th>
+         </tr>
+        </thead>
+        <tbody>
+         <tr>
+          <td><code>add(sprite)</code></td>
+          <td>Agregar sprite al grupo</td>
+         </tr>
+         <tr>
+          <td><code>remove(sprite)</code></td>
+          <td>Quitar sprite del grupo</td>
+         </tr>
+         <tr>
+          <td><code>update()</code></td>
+          <td>Llama al método update() de todos los sprites</td>
+         </tr>
+         <tr>
+          <td><code>draw(superficie)</code></td>
+          <td>Dibuja todos los sprites en la superficie</td>
+         </tr>
+         <tr>
+          <td><code>sprites()</code></td>
+          <td>Retorna lista de todos los sprites</td>
+         </tr>
+        </tbody>
+       </table>
+       <h3 class="text-2xl font-semibold text-gray-700 mt-8 mb-3">Colisiones entre Grupos</h3>
+       <pre class="code-block"><code><span class="keyword">import</span> pygame
+
+<span class="comment"># Detectar colisión entre sprite y grupo</span>
+colisiones = pygame.sprite.<span class="function">spritecollide</span>(jugador, grupo_enemigos, <span class="keyword">False</span>)
+<span class="comment"># False = no eliminar enemigos, True = eliminar al colisionar</span>
+
+<span class="keyword">if</span> colisiones:
+    <span class="function">print</span>(<span class="string">"¡Colisión con enemigo!"</span>)
+    <span class="keyword">for</span> enemigo <span class="keyword">in</span> colisiones:
+        enemigo.<span class="function">kill</span>()  <span class="comment"># Eliminar del grupo</span>
+
+<span class="comment"># Detectar colisiones entre dos grupos</span>
+colisiones = pygame.sprite.<span class="function">groupcollide</span>(grupo_balas, grupo_enemigos, <span class="keyword">True</span>, <span class="keyword">True</span>)
+<span class="comment"># Primer True = eliminar balas, Segundo True = eliminar enemigos</span>
+</code></pre>
+       <div class="exercise-box">
+        <h4 class="text-xl font-bold text-gray-800 mb-3">🎯 Ejercicio 8: Space Shooter Básico</h4>
+        <p class="text-gray-700 mb-2">Crea un juego simple:</p>
+        <ul class="list-disc ml-6 text-gray-700">
+         <li>Un sprite de jugador (nave) que se mueve izquierda/derecha</li>
+         <li>Presionar ESPACIO dispara un proyectil hacia arriba</li>
+         <li>Enemigos aparecen en la parte superior y caen</li>
+         <li>Los proyectiles destruyen enemigos al colisionar</li>
+         <li>Contador de enemigos destruidos</li>
+        </ul>
+       </div>
+      </section><!-- Section 10: Texto y Sonido -->
+      <section id="texto-sonido" class="content-section bg-white rounded-lg shadow-lg p-8">
+       <h2 class="text-3xl font-bold text-gray-800 mb-4">10. Texto y Sonido</h2>
+       <h3 class="text-2xl font-semibold text-gray-700 mt-6 mb-3">Renderizar Texto</h3>
+       <pre class="code-block"><code><span class="keyword">import</span> pygame
+<span class="keyword">import</span> sys
+
+pygame.<span class="function">init</span>()
+pantalla = pygame.display.<span class="function">set_mode</span>((<span class="number">800</span>, <span class="number">600</span>))
+
+<span class="comment"># Crear objeto de fuente</span>
+<span class="comment"># Font(ruta_archivo, tamaño) o Font(None, tamaño) para fuente por defecto</span>
+fuente_grande = pygame.font.<span class="function">Font</span>(<span class="keyword">None</span>, <span class="number">72</span>)
+fuente_mediana = pygame.font.<span class="function">Font</span>(<span class="keyword">None</span>, <span class="number">36</span>)
+fuente_pequeña = pygame.font.<span class="function">Font</span>(<span class="keyword">None</span>, <span class="number">24</span>)
+
+<span class="comment"># O usar fuente del sistema</span>
+fuente_sistema = pygame.font.<span class="function">SysFont</span>(<span class="string">"Arial"</span>, <span class="number">48</span>)
+
+corriendo = <span class="keyword">True</span>
+<span class="keyword">while</span> corriendo:
+    <span class="keyword">for</span> evento <span class="keyword">in</span> pygame.event.<span class="function">get</span>():
+        <span class="keyword">if</span> evento.type == pygame.QUIT:
+            corriendo = <span class="keyword">False</span>
+    
+    pantalla.<span class="function">fill</span>((<span class="number">30</span>, <span class="number">30</span>, <span class="number">30</span>))
+    
+    <span class="comment"># Renderizar texto: render(texto, antialiasing, color)</span>
+    texto1 = fuente_grande.<span class="function">render</span>(<span class="string">"¡Pygame!"</span>, <span class="keyword">True</span>, (<span class="number">255</span>, <span class="number">255</span>, <span class="number">255</span>))
+    texto2 = fuente_mediana.<span class="function">render</span>(<span class="string">"Puntaje: 1000"</span>, <span class="keyword">True</span>, (<span class="number">255</span>, <span class="number">255</span>, <span class="number">0</span>))
+    texto3 = fuente_pequeña.<span class="function">render</span>(<span class="string">"Nivel 1"</span>, <span class="keyword">True</span>, (<span class="number">0</span>, <span class="number">255</span>, <span class="number">0</span>))
+    
+    <span class="comment"># Dibujar texto en pantalla</span>
+    pantalla.<span class="function">blit</span>(texto1, (<span class="number">250</span>, <span class="number">100</span>))
+    pantalla.<span class="function">blit</span>(texto2, (<span class="number">250</span>, <span class="number">250</span>))
+    pantalla.<span class="function">blit</span>(texto3, (<span class="number">350</span>, <span class="number">350</span>))
+    
+    pygame.display.<span class="function">flip</span>()
+
+pygame.<span class="function">quit</span>()
+sys.<span class="function">exit</span>()
+</code></pre>
+       <h3 class="text-2xl font-semibold text-gray-700 mt-8 mb-3">Texto con Fondo</h3>
+       <pre class="code-block"><code><span class="keyword">import</span> pygame
+
+<span class="comment"># Renderizar texto con fondo de color</span>
+fuente = pygame.font.<span class="function">Font</span>(<span class="keyword">None</span>, <span class="number">48</span>)
+
+<span class="comment"># render(texto, antialiasing, color_texto, color_fondo)</span>
+texto = fuente.<span class="function">render</span>(<span class="string">"Game Over"</span>, <span class="keyword">True</span>, (<span class="number">255</span>, <span class="number">0</span>, <span class="number">0</span>), (<span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>))
+
+<span class="comment"># O crear un cuadro alrededor del texto</span>
+texto_sin_fondo = fuente.<span class="function">render</span>(<span class="string">"Victoria!"</span>, <span class="keyword">True</span>, (<span class="number">255</span>, <span class="number">255</span>, <span class="number">255</span>))
+rect_texto = texto_sin_fondo.<span class="function">get_rect</span>()
+rect_texto.center = (<span class="number">400</span>, <span class="number">300</span>)
+
+<span class="comment"># Dibujar fondo y luego texto</span>
+pygame.draw.<span class="function">rect</span>(pantalla, (<span class="number">0</span>, <span class="number">100</span>, <span class="number">0</span>), rect_texto.<span class="function">inflate</span>(<span class="number">20</span>, <span class="number">20</span>))  <span class="comment"># inflate agranda el rect</span>
+pantalla.<span class="function">blit</span>(texto_sin_fondo, rect_texto)
+</code></pre>
+       <h3 class="text-2xl font-semibold text-gray-700 mt-8 mb-3">Texto Dinámico (Contador)</h3>
+       <pre class="code-block"><code><span class="keyword">import</span> pygame
+<span class="keyword">import</span> sys
+
+pygame.<span class="function">init</span>()
+pantalla = pygame.display.<span class="function">set_mode</span>((<span class="number">800</span>, <span class="number">600</span>))
+reloj = pygame.time.<span class="function">Clock</span>()
+fuente = pygame.font.<span class="function">Font</span>(<span class="keyword">None</span>, <span class="number">48</span>)
+
+puntaje = <span class="number">0</span>
+tiempo = <span class="number">60</span>  <span class="comment"># 60 segundos</span>
+contador_frames = <span class="number">0</span>
+
+corriendo = <span class="keyword">True</span>
+<span class="keyword">while</span> corriendo:
+    <span class="keyword">for</span> evento <span class="keyword">in</span> pygame.event.<span class="function">get</span>():
+        <span class="keyword">if</span> evento.type == pygame.QUIT:
+            corriendo = <span class="keyword">False</span>
+        <span class="keyword">if</span> evento.type == pygame.KEYDOWN:
+            <span class="keyword">if</span> evento.key == pygame.K_SPACE:
+                puntaje += <span class="number">10</span>
+    
+    <span class="comment"># Actualizar temporizador (cada 60 frames = 1 segundo a 60 FPS)</span>
+    contador_frames += <span class="number">1</span>
+    <span class="keyword">if</span> contador_frames &gt;= <span class="number">60</span>:
+        tiempo -= <span class="number">1</span>
+        contador_frames = <span class="number">0</span>
+        <span class="keyword">if</span> tiempo &lt;= <span class="number">0</span>:
+            tiempo = <span class="number">0</span>
+    
+    pantalla.<span class="function">fill</span>((<span class="number">0</span>, <span class="number">0</span>, <span class="number">50</span>))
+    
+    <span class="comment"># Renderizar textos dinámicos</span>
+    texto_puntaje = fuente.<span class="function">render</span>(<span class="string">f"Puntaje: {puntaje}"</span>, <span class="keyword">True</span>, (<span class="number">255</span>, <span class="number">255</span>, <span class="number">255</span>))
+    texto_tiempo = fuente.<span class="function">render</span>(<span class="string">f"Tiempo: {tiempo}s"</span>, <span class="keyword">True</span>, (<span class="number">255</span>, <span class="number">255</span>, <span class="number">0</span>))
+    
+    pantalla.<span class="function">blit</span>(texto_puntaje, (<span class="number">50</span>, <span class="number">50</span>))
+    pantalla.<span class="function">blit</span>(texto_tiempo, (<span class="number">550</span>, <span class="number">50</span>))
+    
+    pygame.display.<span class="function">flip</span>()
+    reloj.<span class="function">tick</span>(<span class="number">60</span>)
+
+pygame.<span class="function">quit</span>()
+sys.<span class="function">exit</span>()
+</code></pre>
+       <h3 class="text-2xl font-semibold text-gray-700 mt-8 mb-3">Sistema de Sonido</h3>
+       <div class="warning-box"><strong>⚠️ Nota:</strong> El código de ejemplo a continuación muestra cómo usar sonidos en Pygame. Necesitarás archivos de audio (.wav, .ogg, .mp3) para probarlo en tu computadora.
+       </div>
+       <pre class="code-block"><code><span class="keyword">import</span> pygame
+
+pygame.<span class="function">init</span>()
+pygame.mixer.<span class="function">init</span>()  <span class="comment"># Inicializar sistema de audio</span>
+
+<span class="comment"># Cargar efectos de sonido (.wav recomendado)</span>
+sonido_salto = pygame.mixer.<span class="function">Sound</span>(<span class="string">"salto.wav"</span>)
+sonido_explosion = pygame.mixer.<span class="function">Sound</span>(<span class="string">"explosion.wav"</span>)
+sonido_moneda = pygame.mixer.<span class="function">Sound</span>(<span class="string">"moneda.wav"</span>)
+
+<span class="comment"># Ajustar volumen (0.0 a 1.0)</span>
+sonido_salto.<span class="function">set_volume</span>(<span class="number">0.5</span>)
+
+<span class="comment"># Reproducir sonido</span>
+sonido_salto.<span class="function">play</span>()
+
+<span class="comment"># Reproducir en loop (o repetir N veces)</span>
+sonido_explosion.<span class="function">play</span>(loops=<span class="number">3</span>)  <span class="comment"># Repetir 3 veces más</span>
+
+<span class="comment"># Detener todos los sonidos</span>
+pygame.mixer.<span class="function">stop</span>()
+
+<span class="comment"># Cargar música de fondo (.mp3, .ogg)</span>
+pygame.mixer.music.<span class="function">load</span>(<span class="string">"musica_fondo.mp3"</span>)
+
+<span class="comment"># Reproducir música en loop infinito</span>
+pygame.mixer.music.<span class="function">play</span>(loops=-<span class="number">1</span>)
+
+<span class="comment"># Ajustar volumen de música (0.0 a 1.0)</span>
+pygame.mixer.music.<span class="function">set_volume</span>(<span class="number">0.3</span>)
+
+<span class="comment"># Pausar/Despausar música</span>
+pygame.mixer.music.<span class="function">pause</span>()
+pygame.mixer.music.<span class="function">unpause</span>()
+
+<span class="comment"># Detener música</span>
+pygame.mixer.music.<span class="function">stop</span>()
+
+<span class="comment"># Hacer fade out (desvanecimiento) en milisegundos</span>
+pygame.mixer.music.<span class="function">fadeout</span>(<span class="number">2000</span>)  <span class="comment"># 2 segundos</span>
+</code></pre>
+       <h3 class="text-2xl font-semibold text-gray-700 mt-8 mb-3">Diferencia: Sound vs Music</h3>
+       <table class="param-table">
+        <thead>
+         <tr>
+          <th>Característica</th>
+          <th>Sound (Efectos)</th>
+          <th>Music (Música)</th>
+         </tr>
+        </thead>
+        <tbody>
+         <tr>
+          <td>Uso</td>
+          <td>Efectos cortos</td>
+          <td>Música de fondo larga</td>
+         </tr>
+         <tr>
+          <td>Formato</td>
+          <td>.wav (recomendado)</td>
+          <td>.mp3, .ogg</td>
+         </tr>
+         <tr>
+          <td>Carga</td>
+          <td>Todo en memoria</td>
+          <td>Streaming</td>
+         </tr>
+         <tr>
+          <td>Múltiples</td>
+          <td>Varios a la vez</td>
+          <td>Solo una música</td>
+         </tr>
+         <tr>
+          <td>Control</td>
+          <td>play(), stop()</td>
+          <td>play(), pause(), stop(), fadeout()</td>
+         </tr>
+        </tbody>
+       </table>
+       <div class="tip-box"><strong>💡 Recursos Gratuitos de Audio:</strong>
+        <ul class="list-disc ml-6 mt-2">
+         <li><strong>Freesound.org:</strong> Efectos de sonido</li>
+         <li><strong>OpenGameArt.org:</strong> Música y efectos para juegos</li>
+         <li><strong>Bfxr.net:</strong> Generador de efectos retro</li>
+        </ul>
+       </div>
+       <div class="exercise-box">
+        <h4 class="text-xl font-bold text-gray-800 mb-3">🎯 Ejercicio 9: Interfaz Completa</h4>
+        <p class="text-gray-700 mb-2">Crea una pantalla de juego con:</p>
+        <ul class="list-disc ml-6 text-gray-700">
+         <li>Título del juego en la parte superior</li>
+         <li>Contador de puntaje en esquina superior derecha</li>
+         <li>Contador de vidas/salud en esquina superior izquierda</li>
+         <li>Temporizador de cuenta regresiva</li>
+         <li>Mensaje de "Game Over" cuando el tiempo llegue a 0</li>
+         <li>Bonus: Agrega sonidos cuando el puntaje cambia</li>
+        </ul>
+       </div>
+      </section><!-- Section 11: Proyecto Final -->
+      <section id="proyecto" class="content-section bg-white rounded-lg shadow-lg p-8">
+       <h2 class="text-3xl font-bold text-gray-800 mb-4">11. Proyecto Final: Snake Game</h2>
+       <p class="text-gray-700 mb-6 leading-relaxed">¡Llegó el momento de crear tu primer juego completo! Vamos a construir el clásico juego de la serpiente (Snake) paso a paso, aplicando todo lo que has aprendido.</p>
+       <h3 class="text-2xl font-semibold text-gray-700 mt-6 mb-3">Características del Juego</h3>
+       <ul class="list-disc ml-6 text-gray-700 space-y-2 mb-6">
+        <li>Una serpiente que crece al comer comida</li>
+        <li>Control con las flechas del teclado</li>
+        <li>Sistema de puntaje</li>
+        <li>Game Over al chocar con los bordes o con uno mismo</li>
+        <li>Opción de reiniciar el juego</li>
+       </ul>
+       <h3 class="text-2xl font-semibold text-gray-700 mt-8 mb-3">Código Completo del Snake</h3>
+       <pre class="code-block"><code><span class="keyword">import</span> pygame
+<span class="keyword">import</span> random
+<span class="keyword">import</span> sys
+
+<span class="comment"># Inicializar Pygame</span>
+pygame.<span class="function">init</span>()
+
+<span class="comment"># Constantes</span>
+ANCHO = <span class="number">600</span>
+ALTO = <span class="number">600</span>
+TAMAÑO_CELDA = <span class="number">20</span>
+FPS = <span class="number">10</span>
+
+<span class="comment"># Colores</span>
+NEGRO = (<span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>)
+BLANCO = (<span class="number">255</span>, <span class="number">255</span>, <span class="number">255</span>)
+VERDE = (<span class="number">0</span>, <span class="number">255</span>, <span class="number">0</span>)
+ROJO = (<span class="number">255</span>, <span class="number">0</span>, <span class="number">0</span>)
+AZUL = (<span class="number">0</span>, <span class="number">100</span>, <span class="number">255</span>)
+
+<span class="comment"># Pantalla y reloj</span>
+pantalla = pygame.display.<span class="function">set_mode</span>((ANCHO, ALTO))
+pygame.display.<span class="function">set_caption</span>(<span class="string">"Snake Game"</span>)
+reloj = pygame.time.<span class="function">Clock</span>()
+
+<span class="comment"># Fuentes</span>
+fuente = pygame.font.<span class="function">Font</span>(<span class="keyword">None</span>, <span class="number">36</span>)
+fuente_grande = pygame.font.<span class="function">Font</span>(<span class="keyword">None</span>, <span class="number">72</span>)
+
+<span class="keyword">class</span> <span class="function">Serpiente</span>:
+    <span class="keyword">def</span> <span class="function">__init__</span>(<span class="keyword">self</span>):
+        <span class="keyword">self</span>.longitud = <span class="number">1</span>
+        <span class="keyword">self</span>.posiciones = [(<span class="keyword">int</span>(ANCHO / <span class="number">2</span>), <span class="keyword">int</span>(ALTO / <span class="number">2</span>))]
+        <span class="keyword">self</span>.direccion = random.<span class="function">choice</span>([(<span class="number">0</span>, -<span class="number">1</span>), (<span class="number">0</span>, <span class="number">1</span>), (-<span class="number">1</span>, <span class="number">0</span>), (<span class="number">1</span>, <span class="number">0</span>)])
+        <span class="keyword">self</span>.color = VERDE
+    
+    <span class="keyword">def</span> <span class="function">obtener_cabeza</span>(<span class="keyword">self</span>):
+        <span class="keyword">return</span> <span class="keyword">self</span>.posiciones[<span class="number">0</span>]
+    
+    <span class="keyword">def</span> <span class="function">girar</span>(<span class="keyword">self</span>, direccion):
+        <span class="comment"># Evitar que la serpiente gire 180 grados</span>
+        <span class="keyword">if</span> (<span class="keyword">self</span>.longitud &gt; <span class="number">1</span> <span class="keyword">and</span> 
+            (direccion[<span class="number">0</span>] * -<span class="number">1</span>, direccion[<span class="number">1</span>] * -<span class="number">1</span>) == <span class="keyword">self</span>.direccion):
+            <span class="keyword">return</span>
+        <span class="keyword">else</span>:
+            <span class="keyword">self</span>.direccion = direccion
+    
+    <span class="keyword">def</span> <span class="function">mover</span>(<span class="keyword">self</span>):
+        cabeza_actual = <span class="keyword">self</span>.<span class="function">obtener_cabeza</span>()
+        x, y = <span class="keyword">self</span>.direccion
+        nueva_cabeza = (
+            cabeza_actual[<span class="number">0</span>] + (x * TAMAÑO_CELDA),
+            cabeza_actual[<span class="number">1</span>] + (y * TAMAÑO_CELDA)
+        )
+        
+        <span class="comment"># Verificar colisión con bordes o consigo misma</span>
+        <span class="keyword">if</span> (nueva_cabeza[<span class="number">0</span>] &lt; <span class="number">0</span> <span class="keyword">or</span> nueva_cabeza[<span class="number">0</span>] &gt;= ANCHO <span class="keyword">or</span>
+            nueva_cabeza[<span class="number">1</span>] &lt; <span class="number">0</span> <span class="keyword">or</span> nueva_cabeza[<span class="number">1</span>] &gt;= ALTO <span class="keyword">or</span>
+            nueva_cabeza <span class="keyword">in</span> <span class="keyword">self</span>.posiciones[<span class="number">1</span>:]):
+            <span class="keyword">return</span> <span class="keyword">False</span>
+        
+        <span class="keyword">self</span>.posiciones.<span class="function">insert</span>(<span class="number">0</span>, nueva_cabeza)
+        
+        <span class="keyword">if</span> <span class="function">len</span>(<span class="keyword">self</span>.posiciones) &gt; <span class="keyword">self</span>.longitud:
+            <span class="keyword">self</span>.posiciones.<span class="function">pop</span>()
+        
+        <span class="keyword">return</span> <span class="keyword">True</span>
+    
+    <span class="keyword">def</span> <span class="function">dibujar</span>(<span class="keyword">self</span>, superficie):
+        <span class="keyword">for</span> posicion <span class="keyword">in</span> <span class="keyword">self</span>.posiciones:
+            rect = pygame.<span class="function">Rect</span>(posicion[<span class="number">0</span>], posicion[<span class="number">1</span>], TAMAÑO_CELDA, TAMAÑO_CELDA)
+            pygame.draw.<span class="function">rect</span>(superficie, <span class="keyword">self</span>.color, rect)
+            pygame.draw.<span class="function">rect</span>(superficie, AZUL, rect, <span class="number">1</span>)  <span class="comment"># Borde</span>
+
+<span class="keyword">class</span> <span class="function">Comida</span>:
+    <span class="keyword">def</span> <span class="function">__init__</span>(<span class="keyword">self</span>):
+        <span class="keyword">self</span>.posicion = (<span class="number">0</span>, <span class="number">0</span>)
+        <span class="keyword">self</span>.color = ROJO
+        <span class="keyword">self</span>.<span class="function">generar</span>()
+    
+    <span class="keyword">def</span> <span class="function">generar</span>(<span class="keyword">self</span>):
+        x = random.<span class="function">randint</span>(<span class="number">0</span>, (<span class="keyword">int</span>(ANCHO / TAMAÑO_CELDA) - <span class="number">1</span>)) * TAMAÑO_CELDA
+        y = random.<span class="function">randint</span>(<span class="number">0</span>, (<span class="keyword">int</span>(ALTO / TAMAÑO_CELDA) - <span class="number">1</span>)) * TAMAÑO_CELDA
+        <span class="keyword">self</span>.posicion = (x, y)
+    
+    <span class="keyword">def</span> <span class="function">dibujar</span>(<span class="keyword">self</span>, superficie):
+        rect = pygame.<span class="function">Rect</span>(<span class="keyword">self</span>.posicion[<span class="number">0</span>], <span class="keyword">self</span>.posicion[<span class="number">1</span>], 
+                          TAMAÑO_CELDA, TAMAÑO_CELDA)
+        pygame.draw.<span class="function">rect</span>(superficie, <span class="keyword">self</span>.color, rect)
+
+<span class="keyword">def</span> <span class="function">mostrar_texto</span>(texto, tamaño, x, y):
+    fuente = pygame.font.<span class="function">Font</span>(<span class="keyword">None</span>, tamaño)
+    superficie = fuente.<span class="function">render</span>(texto, <span class="keyword">True</span>, BLANCO)
+    rect = superficie.<span class="function">get_rect</span>()
+    rect.center = (x, y)
+    pantalla.<span class="function">blit</span>(superficie, rect)
+
+<span class="keyword">def</span> <span class="function">juego</span>():
+    serpiente = <span class="function">Serpiente</span>()
+    comida = <span class="function">Comida</span>()
+    puntaje = <span class="number">0</span>
+    
+    corriendo = <span class="keyword">True</span>
+    <span class="keyword">while</span> corriendo:
+        <span class="keyword">for</span> evento <span class="keyword">in</span> pygame.event.<span class="function">get</span>():
+            <span class="keyword">if</span> evento.type == pygame.QUIT:
+                pygame.<span class="function">quit</span>()
+                sys.<span class="function">exit</span>()
+            <span class="keyword">elif</span> evento.type == pygame.KEYDOWN:
+                <span class="keyword">if</span> evento.key == pygame.K_UP:
+                    serpiente.<span class="function">girar</span>((<span class="number">0</span>, -<span class="number">1</span>))
+                <span class="keyword">elif</span> evento.key == pygame.K_DOWN:
+                    serpiente.<span class="function">girar</span>((<span class="number">0</span>, <span class="number">1</span>))
+                <span class="keyword">elif</span> evento.key == pygame.K_LEFT:
+                    serpiente.<span class="function">girar</span>((-<span class="number">1</span>, <span class="number">0</span>))
+                <span class="keyword">elif</span> evento.key == pygame.K_RIGHT:
+                    serpiente.<span class="function">girar</span>((<span class="number">1</span>, <span class="number">0</span>))
+        
+        <span class="comment"># Mover serpiente</span>
+        <span class="keyword">if</span> <span class="keyword">not</span> serpiente.<span class="function">mover</span>():
+            <span class="comment"># Game Over</span>
+            <span class="function">mostrar_game_over</span>(puntaje)
+            <span class="keyword">return</span>
+        
+        <span class="comment"># Verificar si comió</span>
+        <span class="keyword">if</span> serpiente.<span class="function">obtener_cabeza</span>() == comida.posicion:
+            serpiente.longitud += <span class="number">1</span>
+            puntaje += <span class="number">10</span>
+            comida.<span class="function">generar</span>()
+        
+        <span class="comment"># Dibujar</span>
+        pantalla.<span class="function">fill</span>(NEGRO)
+        serpiente.<span class="function">dibujar</span>(pantalla)
+        comida.<span class="function">dibujar</span>(pantalla)
+        
+        <span class="comment"># Mostrar puntaje</span>
+        texto_puntaje = fuente.<span class="function">render</span>(<span class="string">f"Puntaje: {puntaje}"</span>, <span class="keyword">True</span>, BLANCO)
+        pantalla.<span class="function">blit</span>(texto_puntaje, (<span class="number">10</span>, <span class="number">10</span>))
+        
+        pygame.display.<span class="function">flip</span>()
+        reloj.<span class="function">tick</span>(FPS)
+
+<span class="keyword">def</span> <span class="function">mostrar_game_over</span>(puntaje):
+    esperando = <span class="keyword">True</span>
+    <span class="keyword">while</span> esperando:
+        <span class="keyword">for</span> evento <span class="keyword">in</span> pygame.event.<span class="function">get</span>():
+            <span class="keyword">if</span> evento.type == pygame.QUIT:
+                pygame.<span class="function">quit</span>()
+                sys.<span class="function">exit</span>()
+            <span class="keyword">if</span> evento.type == pygame.KEYDOWN:
+                <span class="keyword">if</span> evento.key == pygame.K_SPACE:
+                    esperando = <span class="keyword">False</span>
+                <span class="keyword">elif</span> evento.key == pygame.K_ESCAPE:
+                    pygame.<span class="function">quit</span>()
+                    sys.<span class="function">exit</span>()
+        
+        pantalla.<span class="function">fill</span>(NEGRO)
+        <span class="function">mostrar_texto</span>(<span class="string">"GAME OVER"</span>, <span class="number">72</span>, ANCHO/<span class="number">2</span>, ALTO/<span class="number">2</span> - <span class="number">50</span>)
+        <span class="function">mostrar_texto</span>(<span class="string">f"Puntaje: {puntaje}"</span>, <span class="number">36</span>, ANCHO/<span class="number">2</span>, ALTO/<span class="number">2</span> + <span class="number">20</span>)
+        <span class="function">mostrar_texto</span>(<span class="string">"Presiona ESPACIO para reiniciar"</span>, <span class="number">24</span>, ANCHO/<span class="number">2</span>, ALTO/<span class="number">2</span> + <span class="number">70</span>)
+        <span class="function">mostrar_texto</span>(<span class="string">"ESC para salir"</span>, <span class="number">24</span>, ANCHO/<span class="number">2</span>, ALTO/<span class="number">2</span> + <span class="number">110</span>)
+        
+        pygame.display.<span class="function">flip</span>()
+        reloj.<span class="function">tick</span>(<span class="number">15</span>)
+
+<span class="keyword">def</span> <span class="function">menu_principal</span>():
+    <span class="keyword">while</span> <span class="keyword">True</span>:
+        <span class="keyword">for</span> evento <span class="keyword">in</span> pygame.event.<span class="function">get</span>():
+            <span class="keyword">if</span> evento.type == pygame.QUIT:
+                pygame.<span class="function">quit</span>()
+                sys.<span class="function">exit</span>()
+            <span class="keyword">if</span> evento.type == pygame.KEYDOWN:
+                <span class="keyword">if</span> evento.key == pygame.K_SPACE:
+                    <span class="function">juego</span>()
+        
+        pantalla.<span class="function">fill</span>(NEGRO)
+        <span class="function">mostrar_texto</span>(<span class="string">"SNAKE GAME"</span>, <span class="number">72</span>, ANCHO/<span class="number">2</span>, ALTO/<span class="number">2</span> - <span class="number">50</span>)
+        <span class="function">mostrar_texto</span>(<span class="string">"Presiona ESPACIO para jugar"</span>, <span class="number">36</span>, ANCHO/<span class="number">2</span>, ALTO/<span class="number">2</span> + <span class="number">50</span>)
+        
+        pygame.display.<span class="function">flip</span>()
+        reloj.<span class="function">tick</span>(<span class="number">15</span>)
+
+<span class="comment"># Ejecutar el juego</span>
+<span class="function">menu_principal</span>()
+</code></pre>
+       <h3 class="text-2xl font-semibold text-gray-700 mt-8 mb-3">Cómo Funciona</h3>
+       <div class="important-box"><strong>🎯 Componentes Principales:</strong>
+        <ol class="list-decimal ml-6 mt-2 space-y-2">
+         <li><strong>Clase Serpiente:</strong> Maneja la posición, movimiento y dibujo de la serpiente</li>
+         <li><strong>Clase Comida:</strong> Genera posiciones aleatorias para la comida</li>
+         <li><strong>Función juego():</strong> Loop principal del juego con lógica de colisiones</li>
+         <li><strong>Función mostrar_game_over():</strong> Pantalla de fin de juego</li>
+         <li><strong>Función menu_principal():</strong> Menú de inicio</li>
+        </ol>
+       </div>
+       <h3 class="text-2xl font-semibold text-gray-700 mt-8 mb-3">Ideas para Mejorar el Juego</h3>
+       <div class="exercise-box">
+        <h4 class="text-xl font-bold text-gray-800 mb-3">🚀 Desafíos Extra</h4>
+        <p class="text-gray-700 mb-2">Intenta agregar estas mejoras:</p>
+        <ul class="list-disc ml-6 text-gray-700 space-y-1">
+         <li><strong>Niveles de dificultad:</strong> Aumentar velocidad cada 50 puntos</li>
+         <li><strong>Obstáculos:</strong> Paredes en el centro de la pantalla</li>
+         <li><strong>Power-ups:</strong> Comida especial que da puntos extra</li>
+         <li><strong>Sonidos:</strong> Efectos al comer y al perder</li>
+         <li><strong>High Score:</strong> Guardar el mejor puntaje</li>
+         <li><strong>Modo 2 jugadores:</strong> Dos serpientes compitiendo</li>
+         <li><strong>Efectos visuales:</strong> Cambio de color al comer</li>
+        </ul>
+       </div>
+       <h3 class="text-2xl font-semibold text-gray-700 mt-8 mb-3">¡Felicitaciones! 🎉</h3>
+       <p class="text-gray-700 mb-4 leading-relaxed">Has completado el tutorial de Pygame y creado tu primer juego funcional. Ahora tienes los fundamentos para crear tus propios juegos. Aquí hay algunos próximos pasos:</p>
+       <ul class="list-disc ml-6 text-gray-700 space-y-2 mb-6">
+        <li>Experimenta modificando el código del Snake</li>
+        <li>Crea versiones de otros juegos clásicos (Pong, Breakout, Flappy Bird)</li>
+        <li>Aprende sobre animaciones y sprites más avanzados</li>
+        <li>Explora la documentación oficial de Pygame</li>
+        <li>Únete a comunidades de desarrollo de juegos</li>
+       </ul>
+       <div class="tip-box"><strong>📚 Recursos para Continuar:</strong>
+        <ul class="list-disc ml-6 mt-2">
+         <li><strong>Documentación oficial:</strong> pygame.org/docs</li>
+         <li><strong>Tutoriales:</strong> YouTube, GitHub, Dev.to</li>
+         <li><strong>Assets gratuitos:</strong> OpenGameArt.org, Itch.io</li>
+         <li><strong>Comunidad:</strong> Reddit r/pygame, Discord de Pygame</li>
+        </ul>
+       </div>
+       <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 2rem; border-radius: 12px; text-align: center; margin-top: 3rem;">
+        <h3 class="text-2xl font-bold mb-3">¡Sigue creando!</h3>
+        <p class="text-lg">El único límite es tu imaginación. Cada gran desarrollador de juegos comenzó exactamente donde estás ahora.</p>
+        <p class="text-xl font-bold mt-4">🎮 Happy Coding! 🎮</p>
+       </div>
+      </section>
+
+     </div>
+    </main>
+   </div>
+  </div>
+ <script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'9b6bbd0af4190bf3',t:'MTc2NzIwNDY3Ni4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+</html>
